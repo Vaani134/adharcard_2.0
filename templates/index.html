@@ -1,0 +1,1805 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-9">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h1 class="display-4 fw-bold" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Aadhaar Pattern-Finding Dashboard
+            </h1>
+            <p class="lead text-muted">Geo-intelligent Analytics for Aadhaar Data</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                    <i class="fas fa-chart-line me-2"></i>National Overview
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="intensity-tab" data-bs-toggle="tab" data-bs-target="#intensity" type="button" role="tab">
+                    <i class="fas fa-fire me-2"></i>Update Intensity
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="comparison-tab" data-bs-toggle="tab" data-bs-target="#comparison" type="button" role="tab">
+                    <i class="fas fa-balance-scale me-2"></i>District Comparison
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="compliance-tab" data-bs-toggle="tab" data-bs-target="#compliance" type="button" role="tab">
+                    <i class="fas fa-check-circle me-2"></i>Lifecycle Compliance
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="migration-tab" data-bs-toggle="tab" data-bs-target="#migration" type="button" role="tab">
+                    <i class="fas fa-walking me-2"></i>Migration Patterns
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="anomalies-tab" data-bs-toggle="tab" data-bs-target="#anomalies" type="button" role="tab">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Anomalies & Alerts
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="about-tab" data-bs-toggle="tab" data-bs-target="#about" type="button" role="tab">
+                    <i class="fas fa-info-circle me-2"></i>About & Guide
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="developers-tab" data-bs-toggle="tab" data-bs-target="#developers" type="button" role="tab">
+                    <i class="fas fa-users me-2"></i>Developed By
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="mainTabContent">
+            <!-- National Overview Tab -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <h3 class="mb-4">National Overview</h3>
+                
+                <!-- KPI Cards -->
+                <div class="row mb-4" id="kpi-cards">
+                    <!-- KPI cards will be loaded here -->
+                </div>
+                
+                <!-- State Map -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">State-level Activity Score Map</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Map Type Selector -->
+                        <div class="mb-3">
+                            <label for="overview-map-type" class="form-label">Color Mapping Method:</label>
+                            <select class="form-select" id="overview-map-type">
+                                <option value="raw">Raw Data (auto-capped)</option>
+                                <option value="normalized" selected>Normalized (0-1 scale)</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                            <div class="form-text" id="overview-map-help">
+                                <strong>Normalized coloring</strong> converts all values to 0-1 scale for maximum color differentiation - perfect for extreme outliers!
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Range Inputs -->
+                        <div id="overview-custom-range" class="mb-3" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="overview-custom-min" class="form-label">Min Value:</label>
+                                    <input type="number" class="form-control" id="overview-custom-min" value="0" step="0.1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="overview-custom-max" class="form-label">Max Value:</label>
+                                    <input type="number" class="form-control" id="overview-custom-max" value="1" step="0.1">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="state-map">
+                            <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 600px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px;">
+                                <div class="mb-4">
+                                    <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                                <h5 class="text-primary mb-2">
+                                    <i class="fas fa-map-marked-alt me-2"></i>Initializing Map
+                                </h5>
+                                <p class="text-muted mb-3">Please wait while we load the geographic data...</p>
+                                <div class="progress" style="width: 300px; height: 8px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                         role="progressbar" style="width: 100%"></div>
+                                </div>
+                                <small class="text-muted mt-3">
+                                    <i class="fas fa-clock me-1"></i>
+                                    This may take a few seconds for large datasets
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Top States -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Top States by Activity Score</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="top-states-chart"></div>
+                    </div>
+                </div>
+                
+                <!-- National Trend -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">National Trend Over Time</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="national-trend"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Intensity Tab -->
+            <div class="tab-pane fade" id="intensity" role="tabpanel">
+                <h3 class="mb-4">Update Intensity Analysis</h3>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Detailed view of where residents are most active in updating their Aadhaar details.
+                </div>
+                
+                <!-- Time Period Selector -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Select Time Period</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <label for="month-slider" class="form-label">Month:</label>
+                                <input type="range" class="form-range" id="month-slider" min="0" max="0" value="0">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted" id="slider-min">Loading...</small>
+                                    <small class="text-muted" id="slider-max">Loading...</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Selected Month:</label>
+                                <div class="h5 text-primary" id="selected-month">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Map Options and Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">District-level Activity Map</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Map Type Selector -->
+                                <div class="mb-3">
+                                    <label for="map-type-select" class="form-label">Color Mapping Method:</label>
+                                    <select class="form-select" id="map-type-select">
+                                        <option value="raw">Raw Data (auto-capped)</option>
+                                        <option value="normalized" selected>Normalized (0-1 scale)</option>
+                                    </select>
+                                    <div class="form-text" id="intensity-map-help">
+                                        <strong>Normalized coloring</strong> converts all values to 0-1 scale for maximum color differentiation - perfect for extreme outliers!
+                                    </div>
+                                </div>
+                                
+                                <div id="intensity-map">
+                                    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 600px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px;">
+                                        <div class="mb-4">
+                                            <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                        <h5 class="text-primary mb-2">
+                                            <i class="fas fa-map-marked-alt me-2"></i>Initializing Map
+                                        </h5>
+                                        <p class="text-muted mb-3">Please wait while we load the geographic data...</p>
+                                        <div class="progress" style="width: 300px; height: 8px;">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                                                 role="progressbar" style="width: 100%"></div>
+                                        </div>
+                                        <small class="text-muted mt-3">
+                                            <i class="fas fa-clock me-1"></i>
+                                            This may take a few seconds for large datasets
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Data Statistics</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="intensity-stats">
+                                    <p>Select a month to view statistics</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Top Districts</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="intensity-rankings">
+                                    <p>Select a month to view rankings</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- District Comparison Tab -->
+            <div class="tab-pane fade" id="comparison" role="tabpanel">
+                <h3 class="mb-4">District Comparison Tool</h3>
+                
+                <!-- District Selection -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>District A (Left)</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Select State A</label>
+                                    <select class="form-select" id="state-a">
+                                        <option value="">Loading states...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Select District A</label>
+                                    <select class="form-select" id="district-a">
+                                        <option value="">Select state first</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>District B (Right)</h6>
+                                <div class="mb-3">
+                                    <label class="form-label">Select State B</label>
+                                    <select class="form-select" id="state-b">
+                                        <option value="">Loading states...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Select District B</label>
+                                    <select class="form-select" id="district-b">
+                                        <option value="">Select state first</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button class="btn btn-primary btn-lg" onclick="compareDistricts()">
+                                <i class="fas fa-search me-2"></i>Compare Districts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Comparison Results -->
+                <div id="comparison-results" style="display: none;">
+                    <!-- Results will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Lifecycle Compliance Tab -->
+            <div class="tab-pane fade" id="compliance" role="tabpanel">
+                <h3 class="mb-4">Data Quality Score (Biometric Compliance)</h3>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Tracks whether children are updating their biometrics at age 5 and 15 as required.
+                </div>
+                
+                <div id="compliance-content">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Migration Patterns Tab -->
+            <div class="tab-pane fade" id="migration" role="tabpanel">
+                <h3 class="mb-4">Migration Pattern Analysis</h3>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This analysis identifies potential migration by comparing Demographic Updates vs Biometric Updates.
+                </div>
+                
+                <div id="migration-content">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Anomalies & Alerts Tab -->
+            <div class="tab-pane fade" id="anomalies" role="tabpanel">
+                <h3 class="mb-4">Anomaly Detection & Alerts</h3>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This system uses statistical rules to find unusual patterns.
+                </div>
+                
+                <div class="row mb-4">
+                    <!-- Anomaly Map -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-map-marked-alt me-2"></i>Global Anomaly Overview
+                                </h5>
+                            </div>
+                            <div class="card-body" style="position: relative; overflow: hidden;">
+                                <div id="anomaly-map" style="position: relative; z-index: 1; width: 100%; height: 600px; overflow: hidden;">
+                                    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 600px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px;">
+                                        <div class="mb-4">
+                                            <div class="spinner-border text-danger" role="status" style="width: 4rem; height: 4rem;">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                        </div>
+                                        <h5 class="text-danger mb-2">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>Loading Anomaly Map
+                                        </h5>
+                                        <p class="text-muted mb-3">Analyzing districts for unusual patterns...</p>
+                                        <div class="progress" style="width: 300px; height: 8px;">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-danger" 
+                                                 role="progressbar" style="width: 100%"></div>
+                                        </div>
+                                        <small class="text-muted mt-3">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Red = Critical, Yellow = Warning, Grey = Normal
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Anomaly Summary -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-chart-pie me-2"></i>Anomaly Summary
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="anomaly-summary">
+                                    <div class="d-flex justify-content-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="anomalies-content">
+                    <!-- Additional content will be loaded here -->
+                </div>
+            </div>
+
+            <!-- About & Guide Tab -->
+            <div class="tab-pane fade" id="about" role="tabpanel">
+                <h3 class="mb-4">About & User Guide</h3>
+                
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Dashboard Overview</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>The <strong>Aadhaar Analytics Dashboard</strong> is a comprehensive data visualization and analysis platform designed to monitor, analyze, and optimize Aadhaar enrolment and update processes across India.</p>
+                                
+                                <h6>Purpose</h6>
+                                <ul>
+                                    <li>Visualize Aadhaar data patterns at national, state, and district levels</li>
+                                    <li>Identify anomalies and data quality issues</li>
+                                    <li>Track compliance with mandatory biometric update requirements</li>
+                                    <li>Detect potential migration patterns</li>
+                                    <li>Make data-driven decisions for resource allocation and policy planning</li>
+                                </ul>
+                                
+                                <h6>Key Features</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <ul>
+                                            <li><strong>National Overview:</strong> KPI cards, state maps, rankings</li>
+                                            <li><strong>Update Intensity:</strong> District-level analysis with time filtering</li>
+                                            <li><strong>District Comparison:</strong> Side-by-side benchmarking</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul>
+                                            <li><strong>Compliance Tracking:</strong> Biometric compliance monitoring</li>
+                                            <li><strong>Migration Patterns:</strong> Population movement analysis</li>
+                                            <li><strong>Anomaly Detection:</strong> Automated issue identification</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">User Guide</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="accordion" id="userGuideAccordion">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#navigation">
+                                                Navigation
+                                            </button>
+                                        </h2>
+                                        <div id="navigation" class="accordion-collapse collapse show" data-bs-parent="#userGuideAccordion">
+                                            <div class="accordion-body">
+                                                <ul>
+                                                    <li><strong>Tab Navigation:</strong> Click any tab name at the top to switch pages</li>
+                                                    <li><strong>Map Interaction:</strong> Hover for details, scroll to zoom, drag to pan</li>
+                                                    <li><strong>Chart Interaction:</strong> Hover for tooltips, click legend to hide/show data</li>
+                                                    <li><strong>Table Interaction:</strong> Scroll to view more rows</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#quickStart">
+                                                Quick Start Guide
+                                            </button>
+                                        </h2>
+                                        <div id="quickStart" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                                            <div class="accordion-body">
+                                                <ol>
+                                                    <li><strong>National Overview (2 min):</strong> Review KPI cards and state map</li>
+                                                    <li><strong>Find Your District (3 min):</strong> Use Update Intensity tab with time slider</li>
+                                                    <li><strong>Check for Issues (2 min):</strong> Review Anomalies & Alerts tab</li>
+                                                    <li><strong>Compare Performance (3 min):</strong> Use District Comparison tool</li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#metrics">
+                                                Key Metrics
+                                            </button>
+                                        </h2>
+                                        <div id="metrics" class="accordion-collapse collapse" data-bs-parent="#userGuideAccordion">
+                                            <div class="accordion-body">
+                                                <ul>
+                                                    <li><strong>Activity Score:</strong> Total Updates ÷ Total Holders (measures update frequency)</li>
+                                                    <li><strong>Quality Score:</strong> Biometric compliance rate (target: >75%)</li>
+                                                    <li><strong>Growth Rate:</strong> Month-over-month percentage change</li>
+                                                    <li><strong>Anomaly Score:</strong> Statistical deviation (Warning: 2.0-3.0, Critical: >3.0)</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Technical Information</h5>
+                            </div>
+                            <div class="card-body" id="about-info">
+                                <p>Loading technical information...</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Quick Actions</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
+                                        <i class="fas fa-sync-alt me-2"></i>Refresh Data
+                                    </button>
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="exportData()">
+                                        <i class="fas fa-download me-2"></i>Export Data
+                                    </button>
+                                    <button class="btn btn-outline-info btn-sm" onclick="window.print()">
+                                        <i class="fas fa-print me-2"></i>Print Page
+                                    </button>
+                                    <button class="btn btn-outline-warning btn-sm" onclick="debugStates()">
+                                        <i class="fas fa-bug me-2"></i>Debug States
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="testSimpleMap()">
+                                        <i class="fas fa-flask me-2"></i>Test Colors
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Developed By Tab -->
+            <div class="tab-pane fade" id="developers" role="tabpanel">
+                <h3 class="mb-4">Developed By</h3>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 36px; font-weight: bold; margin: 0 auto;">
+                                        VM
+                                    </div>
+                                </div>
+                                <h5>Vraj Maheshwari</h5>
+                                <p class="text-muted">Lead Developer & Data Analytics Specialist</p>
+                                
+                                <div class="mb-3">
+                                    <strong>Contributions:</strong>
+                                    <ul class="text-start mt-2">
+                                        <li>Dashboard architecture and design</li>
+                                        <li>Data processing and analytics modules</li>
+                                        <li>Interactive visualization components</li>
+                                        <li>Performance optimization</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <a href="mailto:vrajmaheshwari06@gmail.com" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-envelope me-2"></i>Email
+                                    </a>
+                                    <a href="https://vraj-maheshwari.github.io/portfolio/" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-globe me-2"></i>Portfolio
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 36px; font-weight: bold; margin: 0 auto;">
+                                        VP
+                                    </div>
+                                </div>
+                                <h5>Vani Parmar</h5>
+                                <p class="text-muted">Full Stack Developer & UI/UX Designer</p>
+                                
+                                <div class="mb-3">
+                                    <strong>Contributions:</strong>
+                                    <ul class="text-start mt-2">
+                                        <li>User interface design and implementation</li>
+                                        <li>Feature development and integration</li>
+                                        <li>Documentation and user guides</li>
+                                        <li>Testing and quality assurance</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <a href="mailto:vaaniparmar58@gmail.com" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-envelope me-2"></i>Email
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Academic Institution</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6>College of Agricultural Information Technology</h6>
+                                <p>Anand Agricultural University (AAU)<br>
+                                Anand, Gujarat, India</p>
+                                
+                                <p><strong>Program:</strong> Bachelor of Technology (B.Tech) in Information Technology<br>
+                                <strong>Academic Year:</strong> 2024-2025</p>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h6>Project Information</h6>
+                                        <p class="small mb-1"><strong>Technology Stack:</strong></p>
+                                        <p class="small">Python, Flask, Bootstrap, Plotly.js, Pandas, NumPy</p>
+                                        <p class="small mb-1"><strong>Version:</strong> 2.0.0</p>
+                                        <p class="small mb-0"><strong>Year:</strong> 2025</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <p class="text-muted">
+                        <strong>Aadhaar Analytics Dashboard</strong><br>
+                        © 2025 | Developed by B.Tech IT Students | All Rights Reserved
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h5 class="mb-0">Dashboard Info</h5>
+            </div>
+            
+            <!-- Key Metrics -->
+            <h6 class="fw-bold mb-3">Key Metrics</h6>
+            <div class="row mb-3" id="sidebar-metrics">
+                <!-- Metrics will be loaded here -->
+            </div>
+            
+            <hr>
+            
+            <!-- Features -->
+            <h6 class="fw-bold mb-3">Features</h6>
+            <ul class="list-unstyled">
+                <li class="mb-2"><i class="fas fa-search text-primary me-2"></i>Pattern Discovery</li>
+                <li class="mb-2"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Anomaly Detection</li>
+                <li class="mb-2"><i class="fas fa-map text-success me-2"></i>Interactive Maps</li>
+                <li class="mb-2"><i class="fas fa-check-circle text-info me-2"></i>Compliance Tracking</li>
+                <li class="mb-2"><i class="fas fa-walking text-secondary me-2"></i>Migration Analysis</li>
+            </ul>
+            
+            <hr>
+            
+            <!-- Quick Actions -->
+            <h6 class="fw-bold mb-3">Quick Actions</h6>
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh Data
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="exportData()">
+                    <i class="fas fa-download me-2"></i>Export Data
+                </button>
+            </div>
+            
+            <hr>
+            
+            <!-- System Status -->
+            <div class="text-center">
+                <div class="badge bg-success mb-2">
+                    <i class="fas fa-circle me-1"></i>System Operational
+                </div>
+                <p class="small text-muted mb-0">
+                    Last updated: <span id="last-updated"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Global variables
+    let appData = {};
+    let availableMonths = [];
+    let currentMonth = null;
+    
+    // Initialize the dashboard
+    $(document).ready(function() {
+        loadOverviewData();
+        loadStates();
+        loadTimeSeriesData();
+        updateLastUpdated();
+        
+        // Tab change handlers
+        $('#mainTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+            const target = $(e.target).attr('data-bs-target');
+            handleTabChange(target);
+        });
+        
+        // Window resize handler to fix map cropping
+        $(window).on('resize', function() {
+            // Resize all Plotly charts
+            setTimeout(() => {
+                if (document.getElementById('intensity-map')) {
+                    Plotly.Plots.resize('intensity-map');
+                }
+                if (document.getElementById('overview-map')) {
+                    Plotly.Plots.resize('overview-map');
+                }
+                if (document.getElementById('anomaly-map')) {
+                    Plotly.Plots.resize('anomaly-map');
+                }
+            }, 100);
+        });
+        
+        // Map type change handler
+        $('#map-type-select').change(function() {
+            const mapType = $(this).val();
+            if (mapType === 'raw') {
+                $('#intensity-map-help').html('<strong>Raw data coloring</strong> uses actual values directly with auto-capping to handle outliers - shows true data distribution.');
+            } else if (mapType === 'normalized') {
+                $('#intensity-map-help').html('<strong>Normalized coloring</strong> converts all values to 0-1 scale for maximum color differentiation - perfect for extreme outliers!');
+            }
+            
+            // Show immediate feedback that map is updating
+            showMapLoading('intensity-map');
+            updateStateMap();
+        });
+        
+        // Overview map type change handler
+        $('#overview-map-type').change(function() {
+            const mapType = $(this).val();
+            if (mapType === 'custom') {
+                $('#overview-custom-range').show();
+                $('#overview-map-help').html('<strong>Custom range coloring</strong> lets you define specific min/max values for the color scale - perfect for focusing on specific value ranges.');
+            } else {
+                $('#overview-custom-range').hide();
+                if (mapType === 'raw') {
+                    $('#overview-map-help').html('<strong>Raw data coloring</strong> uses actual values directly with auto-capping to handle outliers - shows true data distribution.');
+                } else if (mapType === 'normalized') {
+                    $('#overview-map-help').html('<strong>Normalized coloring</strong> converts all values to 0-1 scale for maximum color differentiation - perfect for extreme outliers!');
+                }
+            }
+            
+            // Show immediate feedback that map is updating
+            showMapLoading('state-map');
+            updateOverviewStateMap();
+        });
+        
+        // Overview custom range change handlers
+        $('#overview-custom-min, #overview-custom-max').change(function() {
+            if ($('#overview-map-type').val() === 'custom') {
+                // Show loading feedback for custom range changes too
+                showMapLoading('state-map');
+                updateOverviewStateMap();
+            }
+        });
+        
+        // Month slider change handler
+        $('#month-slider').on('input', function() {
+            const index = parseInt($(this).val());
+            if (availableMonths[index]) {
+                currentMonth = availableMonths[index];
+                $('#selected-month').text(currentMonth);
+                loadMonthlyData(currentMonth);
+            }
+        });
+    });
+    
+    function loadTimeSeriesData() {
+        $.get('/api/time-series')
+            .done(function(data) {
+                availableMonths = data.available_months;
+                if (availableMonths.length > 0) {
+                    // Set up slider
+                    $('#month-slider').attr('max', availableMonths.length - 1);
+                    $('#month-slider').val(availableMonths.length - 1); // Latest month
+                    $('#slider-min').text(availableMonths[0]);
+                    $('#slider-max').text(availableMonths[availableMonths.length - 1]);
+                    
+                    // Load latest month data
+                    currentMonth = availableMonths[availableMonths.length - 1];
+                    $('#selected-month').text(currentMonth);
+                    loadMonthlyData(currentMonth);
+                    
+                    // Render national trend
+                    renderNationalTrend(data.national_trend);
+                }
+            })
+            .fail(function() {
+                console.error('Failed to load time series data');
+            });
+    }
+    
+    function loadMonthlyData(month) {
+        showLoading('intensity-stats');
+        showLoading('intensity-rankings');
+        
+        $.get(`/api/monthly-data/${month}`)
+            .done(function(data) {
+                renderMonthlyStats(data.statistics);
+                renderMonthlyRankings(data.top_districts);
+                // Store data for map rendering
+                appData.monthlyData = data;
+                
+                // Render the map if we're on the intensity tab
+                if ($('#intensity').hasClass('active')) {
+                    setTimeout(() => updateStateMap(), 100); // Small delay for DOM rendering
+                }
+            })
+            .fail(function() {
+                showError('intensity-stats', 'Failed to load monthly statistics');
+                showError('intensity-rankings', 'Failed to load monthly rankings');
+            });
+    }
+    
+    function renderMonthlyStats(stats) {
+        const html = `
+            <div class="row">
+                <div class="col-6">
+                    <div class="text-center">
+                        <div class="h6 text-primary mb-0">${stats.total_districts}</div>
+                        <small class="text-muted">Total Districts</small>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="text-center">
+                        <div class="h6 text-success mb-0">${stats.non_zero_districts}</div>
+                        <small class="text-muted">Active Districts</small>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="small">
+                <p><strong>Value Range:</strong> ${stats.min_ratio.toFixed(2)} - ${stats.max_ratio.toFixed(2)}</p>
+                <p><strong>Average:</strong> ${stats.mean_ratio.toFixed(3)}</p>
+                <p><strong>Active Rate:</strong> ${((stats.non_zero_districts / stats.total_districts) * 100).toFixed(1)}%</p>
+            </div>
+        `;
+        document.getElementById('intensity-stats').innerHTML = html;
+    }
+    
+    function renderMonthlyRankings(districts) {
+        const html = `
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>State</th>
+                            <th>District</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${districts.slice(0, 10).map(item => `
+                            <tr>
+                                <td class="small">${item.state}</td>
+                                <td class="small">${item.district}</td>
+                                <td class="small">${item.update_ratio.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+        document.getElementById('intensity-rankings').innerHTML = html;
+    }
+    
+    function renderNationalTrend(trendData) {
+        const data = [{
+            x: trendData.map(d => d.year_month),
+            y: trendData.map(d => d.total_holders),
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Total Holders',
+            line: { color: '#2563eb' }
+        }, {
+            x: trendData.map(d => d.year_month),
+            y: trendData.map(d => d.total_updates),
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Total Updates',
+            yaxis: 'y2',
+            line: { color: '#dc2626' }
+        }];
+        
+        const layout = {
+            title: 'National Trend Over Time',
+            xaxis: { title: 'Month' },
+            yaxis: { title: 'Total Holders', side: 'left' },
+            yaxis2: { title: 'Total Updates', side: 'right', overlaying: 'y' },
+            margin: { t: 50, b: 50 }
+        };
+        
+        // Add to overview tab if element exists
+        if (document.getElementById('national-trend')) {
+            Plotly.newPlot('national-trend', data, layout, {responsive: true});
+        }
+    }
+    
+    function updateStateMap() {
+        const mapType = $('#map-type-select').val();
+        let url = `/api/map/states?map_type=${mapType}`;
+        
+        // Show map-specific loading indicator
+        showMapLoading('intensity-map');
+        
+        $.get(url)
+            .done(function(data) {
+                try {
+                    // The API returns a complete Plotly figure JSON string
+                    const plotData = JSON.parse(data);
+                    
+                    // Ensure proper layout for container
+                    plotData.layout.height = 600;
+                    plotData.layout.autosize = true;
+                    plotData.layout.margin = { l: 0, r: 0, t: 50, b: 0 };
+                    
+                    Plotly.newPlot('intensity-map', plotData.data, plotData.layout, {
+                        responsive: true,
+                        displayModeBar: false
+                    });
+                    
+                    // Force resize after a short delay to fix cropping issues
+                    setTimeout(() => {
+                        Plotly.Plots.resize('intensity-map');
+                    }, 200);
+                    
+                } catch (e) {
+                    console.error('Failed to parse map data:', e);
+                    showError('intensity-map', 'Failed to render intensity map. Please try refreshing the page.');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Failed to load map data:', error);
+                showError('intensity-map', 'Failed to load map data. Please check your connection and try again.');
+            });
+    }
+    
+    function renderIntensityMap(mapData) {
+        // Create a properly colored bar chart for intensity map
+        const states = mapData.data.map(d => d.properties.name);
+        const values = mapData.data.map(d => d.properties.value);
+        
+        // Create color scale - different colors for intensity
+        const minVal = Math.min(...values);
+        const maxVal = Math.max(...values);
+        
+        // Generate colors using Plasma color scale (good for intensity)
+        const colors = values.map(val => {
+            const normalized = (val - minVal) / (maxVal - minVal);
+            // Plasma color scale: Purple (low) to Pink (mid) to Yellow (high)
+            if (normalized < 0.33) {
+                const ratio = normalized * 3;
+                return `rgb(${Math.floor(13 + 100 * ratio)}, ${Math.floor(8 + 50 * ratio)}, ${Math.floor(135 + 50 * ratio)})`; // Purple to Pink
+            } else if (normalized < 0.66) {
+                const ratio = (normalized - 0.33) * 3;
+                return `rgb(${Math.floor(113 + 100 * ratio)}, ${Math.floor(58 + 100 * ratio)}, ${Math.floor(185 - 100 * ratio)})`; // Pink to Orange
+            } else {
+                const ratio = (normalized - 0.66) * 3;
+                return `rgb(${Math.floor(213 + 40 * ratio)}, ${Math.floor(158 + 90 * ratio)}, ${Math.floor(85 - 80 * ratio)})`; // Orange to Yellow
+            }
+        });
+        
+        const data = [{
+            x: states,
+            y: values,
+            type: 'bar',
+            marker: {
+                color: colors,
+                line: {
+                    color: 'rgba(0,0,0,0.2)',
+                    width: 1
+                }
+            },
+            hovertemplate: '<b>%{x}</b><br>Update Ratio: %{y:.3f}<extra></extra>'
+        }];
+        
+        const layout = {
+            title: mapData.title,
+            xaxis: { 
+                title: 'State', 
+                tickangle: -45,
+                tickfont: { size: 10 }
+            },
+            yaxis: { title: 'Update Ratio' },
+            margin: { t: 50, b: 120, l: 60, r: 20 },
+            showlegend: false,
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        };
+        
+        Plotly.newPlot('intensity-map', data, layout, {responsive: true});
+    }
+    
+    function renderChoroplethMap(mapData) {
+        // Create a properly colored bar chart with RdYlBu color scheme like the old project
+        const states = mapData.data.map(d => d.properties.name);
+        const values = mapData.data.map(d => d.properties.value);
+        
+        // Create color scale
+        const minVal = Math.min(...values);
+        const maxVal = Math.max(...values);
+        
+        // Generate colors using RdYlBu_r color scale (Red-Yellow-Blue reversed)
+        const colors = values.map(val => {
+            const normalized = (val - minVal) / (maxVal - minVal);
+            // RdYlBu_r: Blue (low) to Yellow (mid) to Red (high)
+            if (normalized < 0.5) {
+                const ratio = normalized * 2;
+                // Blue to Yellow
+                return `rgb(${Math.floor(65 + 190 * ratio)}, ${Math.floor(105 + 150 * ratio)}, ${Math.floor(225 - 100 * ratio)})`;
+            } else {
+                const ratio = (normalized - 0.5) * 2;
+                // Yellow to Red
+                return `rgb(${Math.floor(255)}, ${Math.floor(255 - 100 * ratio)}, ${Math.floor(125 - 125 * ratio)})`;
+            }
+        });
+        
+        const data = [{
+            x: states,
+            y: values,
+            type: 'bar',
+            marker: {
+                color: colors,
+                line: {
+                    color: 'rgba(0,0,0,0.2)',
+                    width: 1
+                }
+            },
+            hovertemplate: '<b>%{x}</b><br>Update Ratio: %{y:.3f}<extra></extra>'
+        }];
+        
+        const layout = {
+            title: mapData.title,
+            xaxis: { 
+                title: 'State', 
+                tickangle: -45,
+                tickfont: { size: 10 }
+            },
+            yaxis: { title: 'Update Ratio' },
+            margin: { t: 50, b: 120, l: 60, r: 20 },
+            showlegend: false,
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            paper_bgcolor: 'rgba(0,0,0,0)'
+        };
+        
+        Plotly.newPlot('state-map', data, layout, {responsive: true});
+    }
+    
+    function loadAboutInfo() {
+        $.get('/api/about')
+            .done(function(data) {
+                const html = `
+                    <h6>${data.title}</h6>
+                    <p class="small">${data.description}</p>
+                    <p class="small"><strong>Version:</strong> ${data.version}</p>
+                    
+                    <h6 class="mt-3">Features</h6>
+                    <ul class="small">
+                        ${data.features.slice(0, 4).map(feature => `<li>${feature}</li>`).join('')}
+                    </ul>
+                    
+                    <h6 class="mt-3">Institution</h6>
+                    <p class="small">
+                        ${data.institution.name}<br>
+                        ${data.institution.university}<br>
+                        ${data.institution.location}
+                    </p>
+                `;
+                document.getElementById('about-info').innerHTML = html;
+            })
+            .fail(function() {
+                document.getElementById('about-info').innerHTML = '<p class="text-muted">Failed to load information</p>';
+            });
+    }
+    
+    function updateLastUpdated() {
+        const now = new Date();
+        document.getElementById('last-updated').textContent = now.toLocaleString();
+    }
+    
+    function loadOverviewData() {
+        showLoading('kpi-cards');
+        
+        $.get('/api/overview')
+            .done(function(data) {
+                appData.overview = data;
+                renderKPICards(data.kpis);
+                renderTopStatesChart(data.top_states);
+                loadStateMap();
+                updateSidebarMetrics(data.kpis);
+            })
+            .fail(function() {
+                showError('kpi-cards', 'Failed to load overview data');
+            });
+    }
+    
+    function renderKPICards(kpis) {
+        const html = `
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">${formatNumber(kpis.total_holders)}</div>
+                    <div class="metric-label">Total Aadhaar Residents</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">${formatNumber(kpis.total_updates)}</div>
+                    <div class="metric-label">Total Updates</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">${kpis.avg_update_ratio}</div>
+                    <div class="metric-label">Avg Activity Score</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">${formatNumber(kpis.total_districts)}</div>
+                    <div class="metric-label">Total Districts</div>
+                </div>
+            </div>
+        `;
+        document.getElementById('kpi-cards').innerHTML = html;
+    }
+    
+    function updateSidebarMetrics(kpis) {
+        // Calculate total anomalies from the overview data
+        let totalAnomalies = 0;
+        
+        // Try to get anomaly count from the API
+        $.get('/api/anomalies')
+            .done(function(anomalyData) {
+                totalAnomalies = (anomalyData.summary.warning || 0) + (anomalyData.summary.critical || 0);
+                
+                const html = `
+                    <div class="col-6">
+                        <div class="text-center">
+                            <div class="h6 text-primary mb-0">${formatNumber(kpis.total_districts)}</div>
+                            <small class="text-muted">Districts</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <div class="h6 text-warning mb-0">${formatNumber(totalAnomalies)}</div>
+                            <small class="text-muted">Anomalies</small>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('sidebar-metrics').innerHTML = html;
+            })
+            .fail(function() {
+                // Fallback if anomaly API fails
+                const html = `
+                    <div class="col-6">
+                        <div class="text-center">
+                            <div class="h6 text-primary mb-0">${formatNumber(kpis.total_districts)}</div>
+                            <small class="text-muted">Districts</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <div class="h6 text-muted mb-0">--</div>
+                            <small class="text-muted">Anomalies</small>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('sidebar-metrics').innerHTML = html;
+            });
+    }
+    
+    function loadStateMap() {
+        updateOverviewStateMap(); // Use the new enhanced map function for overview
+    }
+    
+    function updateOverviewStateMap() {
+        const mapType = $('#overview-map-type').val();
+        let url = `/api/map/states?map_type=${mapType}`;
+        
+        if (mapType === 'custom') {
+            const customMin = $('#overview-custom-min').val();
+            const customMax = $('#overview-custom-max').val();
+            url += `&custom_min=${customMin}&custom_max=${customMax}`;
+        }
+        
+        showMapLoading('state-map');
+        
+        $.get(url)
+            .done(function(data) {
+                try {
+                    const plotData = JSON.parse(data);
+                    
+                    // Ensure proper layout for container
+                    plotData.layout.height = 600;
+                    plotData.layout.autosize = true;
+                    plotData.layout.margin = { l: 0, r: 0, t: 50, b: 0 };
+                    
+                    Plotly.newPlot('state-map', plotData.data, plotData.layout, {
+                        responsive: true,
+                        displayModeBar: false
+                    });
+                    
+                    // Force resize after a short delay
+                    setTimeout(() => {
+                        Plotly.Plots.resize('state-map');
+                    }, 200);
+                    
+                } catch (e) {
+                    console.error('Error parsing plot data:', e);
+                    showError('state-map', 'Failed to render state map. Please try refreshing the page.');
+                }
+            })
+            .fail(function(xhr) {
+                console.error('API call failed:', xhr.responseText);
+                showError('state-map', 'Failed to load state map data. Please check your connection and try again.');
+            });
+    }
+    
+    function renderTopStatesChart(topStates) {
+        const data = [{
+            x: topStates.states,
+            y: topStates.values,
+            type: 'bar',
+            marker: {
+                color: '#2563eb'
+            }
+        }];
+        
+        const layout = {
+            title: 'Top 10 States by Activity Score',
+            xaxis: { title: 'State' },
+            yaxis: { title: 'Activity Score' },
+            margin: { t: 50, b: 100 }
+        };
+        
+        Plotly.newPlot('top-states-chart', data, layout, {responsive: true});
+    }
+    
+    function loadStates() {
+        $.get('/api/states')
+            .done(function(data) {
+                const options = '<option value="">Select State</option>' + 
+                    data.states.map(state => `<option value="${state}">${state}</option>`).join('');
+                $('#state-a, #state-b').html(options);
+            });
+    }
+    
+    // State change handlers
+    $('#state-a').change(function() {
+        const state = $(this).val();
+        if (state) {
+            loadDistricts(state, '#district-a');
+        }
+    });
+    
+    $('#state-b').change(function() {
+        const state = $(this).val();
+        if (state) {
+            loadDistricts(state, '#district-b');
+        }
+    });
+    
+    function loadDistricts(state, selector) {
+        $.get(`/api/districts/${state}`)
+            .done(function(data) {
+                const options = '<option value="">Select District</option>' + 
+                    data.districts.map(district => `<option value="${district}">${district}</option>`).join('');
+                $(selector).html(options);
+            });
+    }
+    
+    function compareDistricts() {
+        const stateA = $('#state-a').val();
+        const districtA = $('#district-a').val();
+        const stateB = $('#state-b').val();
+        const districtB = $('#district-b').val();
+        
+        if (!stateA || !districtA || !stateB || !districtB) {
+            alert('Please select both districts before comparing.');
+            return;
+        }
+        
+        const params = new URLSearchParams({
+            state_a: stateA,
+            district_a: districtA,
+            state_b: stateB,
+            district_b: districtB
+        });
+        
+        $.get(`/api/comparison?${params}`)
+            .done(function(data) {
+                renderComparison(data);
+                $('#comparison-results').show();
+            })
+            .fail(function() {
+                alert('Failed to load comparison data');
+            });
+    }
+    
+    function renderComparison(data) {
+        const html = `
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Comparison Results</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>${data.district_a.name}</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Population:</strong> ${formatNumber(data.district_a.population)}</li>
+                                <li><strong>Activity Score:</strong> ${data.district_a.activity_score.toFixed(2)}</li>
+                                <li><strong>Quality Score:</strong> ${data.district_a.quality_score.toFixed(2)}</li>
+                                <li><strong>Growth Rate:</strong> ${data.district_a.growth_rate.toFixed(1)}%</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>${data.district_b.name}</h6>
+                            <ul class="list-unstyled">
+                                <li><strong>Population:</strong> ${formatNumber(data.district_b.population)}</li>
+                                <li><strong>Activity Score:</strong> ${data.district_b.activity_score.toFixed(2)}</li>
+                                <li><strong>Quality Score:</strong> ${data.district_b.quality_score.toFixed(2)}</li>
+                                <li><strong>Growth Rate:</strong> ${data.district_b.growth_rate.toFixed(1)}%</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('comparison-results').innerHTML = html;
+    }
+    
+    function handleTabChange(target) {
+        switch(target) {
+            case '#intensity':
+                // Load intensity map when tab is opened
+                if (appData.monthlyData) {
+                    // Data already loaded, just render the map
+                    setTimeout(() => updateStateMap(), 100); // Small delay for DOM rendering
+                }
+                break;
+            case '#compliance':
+                loadComplianceData();
+                break;
+            case '#migration':
+                loadMigrationData();
+                break;
+            case '#anomalies':
+                loadAnomaliesData();
+                break;
+            case '#about':
+                loadAboutInfo();
+                break;
+            case '#developers':
+                // Static content, no loading needed
+                break;
+        }
+    }
+    
+    function loadComplianceData() {
+        if ($('#compliance-content').children().length > 0) return; // Already loaded
+        
+        showLoading('compliance-content');
+        $.get('/api/compliance')
+            .done(function(data) {
+                renderComplianceData(data);
+            })
+            .fail(function() {
+                showError('compliance-content', 'Failed to load compliance data');
+            });
+    }
+    
+    function renderComplianceData(data) {
+        const html = `
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Compliance Distribution</h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="compliance-chart"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Top Compliant Districts</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>State</th>
+                                            <th>District</th>
+                                            <th>Score</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.top_compliant.slice(0, 10).map(item => `
+                                            <tr>
+                                                <td>${item.state}</td>
+                                                <td>${item.district}</td>
+                                                <td>${item.biometric_compliance.toFixed(2)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('compliance-content').innerHTML = html;
+        
+        // Render compliance chart
+        const chartData = [{
+            values: data.distribution.values,
+            labels: data.distribution.labels,
+            type: 'pie'
+        }];
+        
+        const layout = {
+            title: 'Compliance Distribution'
+        };
+        
+        Plotly.newPlot('compliance-chart', chartData, layout, {responsive: true});
+    }
+    
+    function loadMigrationData() {
+        if ($('#migration-content').children().length > 0) return;
+        
+        showLoading('migration-content');
+        $.get('/api/migration')
+            .done(function(data) {
+                renderMigrationData(data);
+            })
+            .fail(function() {
+                showError('migration-content', 'Failed to load migration data');
+            });
+    }
+    
+    function renderMigrationData(data) {
+        const html = `
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Top Potential Migration Hotspots</h6>
+                    <small class="text-muted">Districts with unusually high address changes compared to biometric updates</small>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>District</th>
+                                    <th>Demo Update Ratio</th>
+                                    <th>Bio Update Ratio</th>
+                                    <th>Total Holders</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.migration_hotspots.map(item => `
+                                    <tr>
+                                        <td>${item.state}</td>
+                                        <td>${item.district}</td>
+                                        <td>${item.demo_update_ratio.toFixed(2)}</td>
+                                        <td>${item.bio_update_ratio.toFixed(2)}</td>
+                                        <td>${formatNumber(item.total_holders)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted mt-2">
+                        Showing top 10 of ${data.total_migration_districts} migration hotspot districts
+                    </p>
+                </div>
+            </div>
+        `;
+        document.getElementById('migration-content').innerHTML = html;
+    }
+    
+    function loadAnomaliesData() {
+        // Load anomaly summary and critical anomalies table
+        showLoading('anomalies-content');
+        $.get('/api/anomalies')
+            .done(function(data) {
+                renderAnomaliesData(data);
+                renderAnomalySummary(data.summary);
+            })
+            .fail(function() {
+                showError('anomalies-content', 'Failed to load anomalies data');
+                showError('anomaly-summary', 'Failed to load anomaly summary');
+            });
+        
+        // Load anomaly map
+        loadAnomalyMap();
+    }
+    
+    function loadAnomalyMap() {
+        showMapLoading('anomaly-map');
+        
+        $.get('/api/map/anomalies')
+            .done(function(data) {
+                try {
+                    const plotData = JSON.parse(data);
+                    
+                    // Ensure proper layout for container with strict boundaries
+                    plotData.layout.height = 600;
+                    plotData.layout.width = null; // Let it auto-size width
+                    plotData.layout.autosize = true;
+                    plotData.layout.margin = { l: 0, r: 0, t: 50, b: 0 };
+                    
+                    // Clear the container first
+                    document.getElementById('anomaly-map').innerHTML = '';
+                    
+                    Plotly.newPlot('anomaly-map', plotData.data, plotData.layout, {
+                        responsive: true,
+                        displayModeBar: false,
+                        staticPlot: false,
+                        scrollZoom: false
+                    });
+                    
+                    // Force resize and ensure containment
+                    setTimeout(() => {
+                        Plotly.Plots.resize('anomaly-map');
+                        
+                        // Additional containment fix
+                        const mapContainer = document.getElementById('anomaly-map');
+                        if (mapContainer) {
+                            const plotlyDiv = mapContainer.querySelector('.plotly-graph-div');
+                            if (plotlyDiv) {
+                                plotlyDiv.style.width = '100%';
+                                plotlyDiv.style.height = '600px';
+                                plotlyDiv.style.maxWidth = '100%';
+                                plotlyDiv.style.overflow = 'hidden';
+                            }
+                        }
+                    }, 300);
+                    
+                } catch (e) {
+                    console.error('Failed to parse anomaly map data:', e);
+                    showError('anomaly-map', 'Failed to render anomaly map. Please try refreshing the page.');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Failed to load anomaly map data:', error);
+                showError('anomaly-map', 'Failed to load anomaly map data. Please check your connection and try again.');
+            });
+    }
+    
+    function renderAnomalySummary(summary) {
+        const total = summary.total_districts;
+        const normalPct = ((summary.normal / total) * 100).toFixed(1);
+        const warningPct = ((summary.warning / total) * 100).toFixed(1);
+        const criticalPct = ((summary.critical / total) * 100).toFixed(1);
+        
+        const html = `
+            <div class="row text-center">
+                <div class="col-12 mb-3">
+                    <div class="h4 text-primary">${formatNumber(total)}</div>
+                    <small class="text-muted">Total Districts</small>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4">
+                    <div class="text-center">
+                        <div class="h5 text-success mb-1">${formatNumber(summary.normal)}</div>
+                        <small class="text-muted">Normal</small>
+                        <div class="progress mt-1" style="height: 4px;">
+                            <div class="progress-bar bg-success" style="width: ${normalPct}%"></div>
+                        </div>
+                        <small class="text-muted">${normalPct}%</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center">
+                        <div class="h5 text-warning mb-1">${formatNumber(summary.warning)}</div>
+                        <small class="text-muted">Warning</small>
+                        <div class="progress mt-1" style="height: 4px;">
+                            <div class="progress-bar bg-warning" style="width: ${warningPct}%"></div>
+                        </div>
+                        <small class="text-muted">${warningPct}%</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-center">
+                        <div class="h5 text-danger mb-1">${formatNumber(summary.critical)}</div>
+                        <small class="text-muted">Critical</small>
+                        <div class="progress mt-1" style="height: 4px;">
+                            <div class="progress-bar bg-danger" style="width: ${criticalPct}%"></div>
+                        </div>
+                        <small class="text-muted">${criticalPct}%</small>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="small text-center">
+                <div class="d-flex justify-content-center align-items-center mb-2">
+                    <span class="badge bg-danger me-2" style="width: 12px; height: 12px;"></span>
+                    <span class="me-3">Critical</span>
+                    <span class="badge bg-warning me-2" style="width: 12px; height: 12px;"></span>
+                    <span class="me-3">Warning</span>
+                    <span class="badge bg-secondary me-2" style="width: 12px; height: 12px;"></span>
+                    <span>Normal</span>
+                </div>
+            </div>
+        `;
+        document.getElementById('anomaly-summary').innerHTML = html;
+    }
+    
+    function renderAnomaliesData(data) {
+        const html = `
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value">${formatNumber(data.summary.total_districts)}</div>
+                        <div class="metric-label">Total Districts</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value text-success">${formatNumber(data.summary.normal)}</div>
+                        <div class="metric-label">Normal</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value text-warning">${formatNumber(data.summary.warning)}</div>
+                        <div class="metric-label">Warning</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value text-danger">${formatNumber(data.summary.critical)}</div>
+                        <div class="metric-label">Critical</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">Critical Anomalies</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>State</th>
+                                    <th>District</th>
+                                    <th>Update Ratio Mean</th>
+                                    <th>Anomaly Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.critical_anomalies.map(item => `
+                                    <tr>
+                                        <td>${item.state}</td>
+                                        <td>${item.district}</td>
+                                        <td>${item.update_ratio_mean.toFixed(2)}</td>
+                                        <td><span class="badge bg-danger">${item.anomaly_score.toFixed(2)}</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('anomalies-content').innerHTML = html;
+    }
+    
+    function exportData() {
+        alert('Export functionality coming soon!');
+    }
+    
+    function debugStates() {
+        $.get('/api/debug/states')
+            .done(function(data) {
+                console.log('State Debug Data:', data);
+                alert(`Debug Info:\nTotal States: ${data.total_states}\nUpdate Ratio Range: ${data.update_ratio_stats.min.toFixed(3)} - ${data.update_ratio_stats.max.toFixed(3)}\nUnique Values: ${data.update_ratio_stats.unique_values}\n\nCheck console for detailed data.`);
+            })
+            .fail(function(xhr) {
+                console.error('Debug failed:', xhr.responseText);
+                alert('Debug failed. Check console for details.');
+            });
+    }
+    
+    function testSimpleMap() {
+        $.get('/api/test/simple-map')
+            .done(function(data) {
+                try {
+                    const plotData = JSON.parse(data);
+                    Plotly.newPlot('state-map', plotData.data, plotData.layout, {responsive: true});
+                    alert('Test map loaded! This should show different colors for each state.');
+                } catch (e) {
+                    console.error('Error parsing test map:', e);
+                    alert('Failed to render test map');
+                }
+            })
+            .fail(function(xhr) {
+                console.error('Test map failed:', xhr.responseText);
+                alert('Test map failed. Check console for details.');
+            });
+    }
+    
+    // Loading and error utility functions
+    function showLoading(elementId, message = 'Loading...') {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.innerHTML = `
+                <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 200px;">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="text-muted">${message}</div>
+                    <div class="progress mt-3" style="width: 200px; height: 6px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    function showMapLoading(elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.innerHTML = `
+                <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 600px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px;">
+                    <div class="mb-4">
+                        <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <h5 class="text-primary mb-2">
+                        <i class="fas fa-map-marked-alt me-2"></i>Loading Geographic Map
+                    </h5>
+                    <p class="text-muted mb-3">Processing geographic data and rendering choropleth map...</p>
+                    <div class="progress" style="width: 300px; height: 8px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                             role="progressbar" style="width: 100%"></div>
+                    </div>
+                    <small class="text-muted mt-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        This may take a few seconds for large datasets
+                    </small>
+                </div>
+            `;
+        }
+    }
+    
+    function showError(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.innerHTML = `
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>${message}</div>
+                </div>
+            `;
+        }
+    }
+    
+    function formatNumber(num) {
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + 'M';
+        } else if (num >= 1000) {
+            return (num / 1000).toFixed(1) + 'K';
+        }
+        return num.toString();
+    }
+</script>
+{% endblock %}
