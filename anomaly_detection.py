@@ -45,22 +45,31 @@ class AnomalyDetector:
         # Merge state stats
         district_metrics = district_metrics.merge(state_stats, on='state', how='left')
         
+        # Check if biometric_compliance column exists and has valid data
+        has_compliance = 'biometric_compliance' in district_metrics.columns and district_metrics['biometric_compliance'].notna().any()
+        
+        # Debug: Print column names
+        print(f"District metrics columns: {list(district_metrics.columns)}")
+        
         # Detect anomalies
         def classify_anomaly(row):
             # Rule 1: Extremely high update ratio (> 10x state average)
             if row['update_ratio_mean'] > 10 * row['state_update_ratio_mean']:
                 return 'critical'
             
-            # Rule 2: Very low compliance (< 0.1)
-            if row['biometric_compliance'] < 0.1:
+            # Rule 2: Very low compliance (< 0.1) - only if compliance data is available
+            if has_compliance and pd.notna(row.get('biometric_compliance', 1.0)) and row['biometric_compliance'] < 0.1:
                 return 'warning'
             
             # Rule 3: Statistical outlier (> 3 std from state mean)
             if abs(row['update_ratio_mean'] - row['state_update_ratio_mean']) > threshold_std * row['state_update_ratio_std']:
                 return 'warning'
             
-            # Rule 4: Zero activity in populated district
-            if row['total_holders'] > 1000 and row['total_updates'] == 0:
+            # Rule 4: Zero activity in populated district - use correct column names
+            total_holders_col = 'total_holders_sum' if 'total_holders_sum' in row else 'total_holders'
+            total_updates_col = 'total_updates_sum' if 'total_updates_sum' in row else 'total_updates'
+            
+            if row.get(total_holders_col, 0) > 1000 and row.get(total_updates_col, 1) == 0:
                 return 'critical'
             
             return 'normal'
@@ -76,8 +85,13 @@ class AnomalyDetector:
         if max_deviation > 0:
             district_metrics['anomaly_score'] += 0.4 * (state_deviation / max_deviation)
         
-        # Score based on compliance
-        district_metrics['anomaly_score'] += 0.3 * (1 - district_metrics['biometric_compliance'].clip(0, 1))
+        # Score based on compliance (only if column exists and has valid values)
+        if 'biometric_compliance' in district_metrics.columns:
+            compliance_scores = district_metrics['biometric_compliance'].fillna(0).clip(0, 1)
+            district_metrics['anomaly_score'] += 0.3 * (1 - compliance_scores)
+        else:
+            # If no compliance data, use a neutral score
+            district_metrics['anomaly_score'] += 0.0
         
         # Score based on ratio extremes
         ratio_extreme = np.where(

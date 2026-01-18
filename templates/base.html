@@ -201,6 +201,39 @@
             margin-bottom: 1.5rem;
         }
         
+        /* Footer Styling */
+        footer {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-top: 2px solid var(--border-color);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .footer-copyright {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        .footer-copyright p {
+            margin-bottom: 0;
+            line-height: 1.6;
+        }
+        
+        .footer-copyright .text-primary {
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .footer-copyright small {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
         @media (max-width: 768px) {
             .nav-tabs .nav-link {
                 font-size: 0.875rem;
@@ -209,6 +242,24 @@
             
             .metric-value {
                 font-size: 1.5rem;
+            }
+            
+            /* Footer responsive styling */
+            footer {
+                padding: 2rem 0 !important;
+            }
+            
+            .footer-copyright {
+                margin-top: 1rem;
+                padding: 0.75rem;
+            }
+            
+            .footer-copyright .text-primary {
+                font-size: 1rem;
+            }
+            
+            .footer-copyright small {
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -256,9 +307,18 @@
                     <p class="text-muted mb-0">
                         Developed by <strong>Vraj Maheshwari</strong> & <strong>Vani Parmar</strong>
                     </p>
-                    <p class="text-muted mb-0">
-                        <small>College of Agricultural Information Technology, AAU Anand</small>
-                    </p>
+                </div>
+            </div>
+            
+            <!-- Copyright Section -->
+            <div class="row mt-3 pt-3 border-top">
+                <div class="col-12">
+                    <div class="footer-copyright text-center">
+                        <p class="text-muted mb-0">
+                            <strong class="text-primary">Aadhaar Analytics Dashboard</strong><br>
+                            <small>© 2025 | Developed by B.Tech IT Students | All Rights Reserved</small>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

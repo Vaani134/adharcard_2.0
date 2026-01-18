@@ -543,14 +543,16 @@
             <div class="tab-pane fade" id="developers" role="tabpanel">
                 <h3 class="mb-4">Developed By</h3>
                 
-                <div class="row">
+                <!-- Developer Profiles Row - Side by Side -->
+                <div class="row mb-4">
+                    <!-- Vraj Maheshwari -->
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body text-center">
                                 <div class="mb-3">
-                                    <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 36px; font-weight: bold; margin: 0 auto;">
-                                        VM
-                                    </div>
+                                    <img src="{{ url_for('static', filename='images/vraj_pic.jpg') }}" 
+                                         alt="Vraj Maheshwari" 
+                                         style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #667eea; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); margin: 0 auto; display: block;">
                                 </div>
                                 <h5>Vraj Maheshwari</h5>
                                 <p class="text-muted">Lead Developer & Data Analytics Specialist</p>
@@ -577,13 +579,14 @@
                         </div>
                     </div>
                     
+                    <!-- Vani Parmar -->
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body text-center">
                                 <div class="mb-3">
-                                    <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 36px; font-weight: bold; margin: 0 auto;">
-                                        VP
-                                    </div>
+                                    <img src="{{ url_for('static', filename='images/vani_pic.png') }}" 
+                                         alt="Vani Parmar" 
+                                         style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #f093fb; box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3); margin: 0 auto; display: block;">
                                 </div>
                                 <h5>Vani Parmar</h5>
                                 <p class="text-muted">Full Stack Developer & UI/UX Designer</p>
@@ -608,28 +611,37 @@
                     </div>
                 </div>
                 
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">Academic Institution</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <h6>College of Agricultural Information Technology</h6>
-                                <p>Anand Agricultural University (AAU)<br>
-                                Anand, Gujarat, India</p>
-                                
-                                <p><strong>Program:</strong> Bachelor of Technology (B.Tech) in Information Technology<br>
-                                <strong>Academic Year:</strong> 2024-2025</p>
+                <!-- Dashboard Overview Row - Full Width Below -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Dashboard Overview</h5>
                             </div>
-                            <div class="col-md-4">
-                                <div class="card bg-light">
-                                    <div class="card-body text-center">
-                                        <h6>Project Information</h6>
-                                        <p class="small mb-1"><strong>Technology Stack:</strong></p>
-                                        <p class="small">Python, Flask, Bootstrap, Plotly.js, Pandas, NumPy</p>
-                                        <p class="small mb-1"><strong>Version:</strong> 2.0.0</p>
-                                        <p class="small mb-0"><strong>Year:</strong> 2025</p>
+                            <div class="card-body">
+                                <p>The <strong>Aadhaar Analytics Dashboard</strong> is a comprehensive data visualization and analysis platform designed to monitor, analyze, and optimize Aadhaar enrolment and update processes across India.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Purpose</h6>
+                                        <ul>
+                                            <li>Visualize Aadhaar data patterns at national, state, and district levels</li>
+                                            <li>Identify anomalies and data quality issues</li>
+                                            <li>Track compliance with mandatory biometric update requirements</li>
+                                            <li>Detect potential migration patterns</li>
+                                            <li>Make data-driven decisions for resource allocation and policy planning</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Key Features</h6>
+                                        <ul>
+                                            <li><strong>National Overview:</strong> KPI cards, state maps, rankings</li>
+                                            <li><strong>Update Intensity:</strong> District-level analysis with time filtering</li>
+                                            <li><strong>District Comparison:</strong> Side-by-side benchmarking</li>
+                                            <li><strong>Compliance Tracking:</strong> Biometric compliance monitoring</li>
+                                            <li><strong>Migration Patterns:</strong> Population movement analysis</li>
+                                            <li><strong>Anomaly Detection:</strong> Automated issue identification</li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
@@ -637,11 +649,52 @@
                     </div>
                 </div>
                 
-                <div class="text-center mt-4">
-                    <p class="text-muted">
-                        <strong>Aadhaar Analytics Dashboard</strong><br>
-                        © 2025 | Developed by B.Tech IT Students | All Rights Reserved
-                    </p>
+                <!-- Project Information Section -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Project Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <h6>Technology Stack</h6>
+                                                <p class="small mb-1"><strong>Backend:</strong> Python, Flask, Pandas, NumPy</p>
+                                                <p class="small mb-1"><strong>Frontend:</strong> Bootstrap, Plotly.js, jQuery</p>
+                                                <p class="small mb-1"><strong>Version:</strong> 2.0.0</p>
+                                                <p class="small mb-0"><strong>Year:</strong> 2025</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <h6>Data Sources</h6>
+                                                <p class="small mb-1"><strong>CSV Data Used:</strong></p>
+                                                <p class="small"><strong>1:</strong> api_data_aadhar_biometric</p>
+                                                <p class="small"><strong>2:</strong> api_data_aadhar_demographic</p>
+                                                <p class="small"><strong>3:</strong> api_data_aadhar_enrolment</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <h6>Geographic Data</h6>
+                                                <p class="small mb-1"><strong>Map Data:</strong></p>
+                                                <p class="small">India map data obtained from GitHub GeoJSON files for geographic visualization and state-wise analysis.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -935,6 +988,10 @@
                     // The API returns a complete Plotly figure JSON string
                     const plotData = JSON.parse(data);
                     
+                    // Clear the loading state and render the map
+                    const mapElement = document.getElementById('intensity-map');
+                    mapElement.innerHTML = ''; // Clear loading content
+                    
                     // Ensure proper layout for container
                     plotData.layout.height = 600;
                     plotData.layout.autosize = true;
@@ -949,6 +1006,9 @@
                     setTimeout(() => {
                         Plotly.Plots.resize('intensity-map');
                     }, 200);
+                    
+                    hideMapLoading('intensity-map');
+                    console.log('Intensity map loaded successfully!');
                     
                 } catch (e) {
                     console.error('Failed to parse map data:', e);
@@ -1104,19 +1164,54 @@
         document.getElementById('last-updated').textContent = now.toLocaleString();
     }
     
-    function loadOverviewData() {
-        showLoading('kpi-cards');
+    function loadOverviewData(retryCount = 0) {
+        const maxRetries = 10; // Maximum number of retries
+        const retryDelay = 3000; // 3 seconds between retries
+        
+        showLoading('kpi-cards', 'Loading national overview data...');
         
         $.get('/api/overview')
             .done(function(data) {
+                if (data.status === 'loading' && retryCount < maxRetries) {
+                    // Data is still being processed, retry after delay
+                    console.log(`Data still loading, retry ${retryCount + 1}/${maxRetries} in ${retryDelay/1000} seconds...`);
+                    showLoading('kpi-cards', `Data is being processed... (${retryCount + 1}/${maxRetries})`);
+                    setTimeout(() => loadOverviewData(retryCount + 1), retryDelay);
+                    return;
+                }
+                
+                if (data.error && data.status === 'loading' && retryCount < maxRetries) {
+                    // Still loading, retry
+                    console.log(`Data still loading, retry ${retryCount + 1}/${maxRetries} in ${retryDelay/1000} seconds...`);
+                    showLoading('kpi-cards', `Data is being processed... (${retryCount + 1}/${maxRetries})`);
+                    setTimeout(() => loadOverviewData(retryCount + 1), retryDelay);
+                    return;
+                }
+                
+                // Data loaded successfully
                 appData.overview = data;
                 renderKPICards(data.kpis);
                 renderTopStatesChart(data.top_states);
                 loadStateMap();
                 updateSidebarMetrics(data.kpis);
+                console.log('Overview data loaded successfully!');
             })
-            .fail(function() {
-                showError('kpi-cards', 'Failed to load overview data');
+            .fail(function(xhr, status, error) {
+                if (xhr.status === 202 && retryCount < maxRetries) {
+                    // 202 means still processing, retry
+                    console.log(`Server still processing data, retry ${retryCount + 1}/${maxRetries} in ${retryDelay/1000} seconds...`);
+                    showLoading('kpi-cards', `Data is being processed... (${retryCount + 1}/${maxRetries})`);
+                    setTimeout(() => loadOverviewData(retryCount + 1), retryDelay);
+                } else if (retryCount < maxRetries) {
+                    // Other error, retry with shorter delay
+                    console.log(`API error, retry ${retryCount + 1}/${maxRetries} in 2 seconds...`);
+                    showLoading('kpi-cards', `Retrying... (${retryCount + 1}/${maxRetries})`);
+                    setTimeout(() => loadOverviewData(retryCount + 1), 2000);
+                } else {
+                    // Max retries reached
+                    console.error('Failed to load overview data after maximum retries');
+                    showError('kpi-cards', 'Failed to load overview data. Please refresh the page.');
+                }
             });
     }
     
@@ -1199,7 +1294,10 @@
         updateOverviewStateMap(); // Use the new enhanced map function for overview
     }
     
-    function updateOverviewStateMap() {
+    function updateOverviewStateMap(retryCount = 0) {
+        const maxRetries = 5;
+        const retryDelay = 2000;
+        
         const mapType = $('#overview-map-type').val();
         let url = `/api/map/states?map_type=${mapType}`;
         
@@ -1216,6 +1314,10 @@
                 try {
                     const plotData = JSON.parse(data);
                     
+                    // Clear the loading state and render the map
+                    const mapElement = document.getElementById('state-map');
+                    mapElement.innerHTML = ''; // Clear loading content
+                    
                     // Ensure proper layout for container
                     plotData.layout.height = 600;
                     plotData.layout.autosize = true;
@@ -1231,14 +1333,27 @@
                         Plotly.Plots.resize('state-map');
                     }, 200);
                     
+                    hideMapLoading('state-map');
+                    console.log('State map loaded successfully!');
+                    
                 } catch (e) {
                     console.error('Error parsing plot data:', e);
                     showError('state-map', 'Failed to render state map. Please try refreshing the page.');
                 }
             })
             .fail(function(xhr) {
-                console.error('API call failed:', xhr.responseText);
-                showError('state-map', 'Failed to load state map data. Please check your connection and try again.');
+                if (xhr.status === 202 && retryCount < maxRetries) {
+                    // Data still processing, retry
+                    console.log(`Map data still processing, retry ${retryCount + 1}/${maxRetries} in ${retryDelay/1000} seconds...`);
+                    setTimeout(() => updateOverviewStateMap(retryCount + 1), retryDelay);
+                } else if (retryCount < maxRetries) {
+                    // Other error, retry
+                    console.log(`Map API error, retry ${retryCount + 1}/${maxRetries} in ${retryDelay/1000} seconds...`);
+                    setTimeout(() => updateOverviewStateMap(retryCount + 1), retryDelay);
+                } else {
+                    console.error('API call failed after max retries:', xhr.responseText);
+                    showError('state-map', 'Failed to load state map data. Please refresh the page.');
+                }
             });
     }
     
@@ -1535,14 +1650,15 @@
                 try {
                     const plotData = JSON.parse(data);
                     
+                    // Clear the loading state and render the map
+                    const mapElement = document.getElementById('anomaly-map');
+                    mapElement.innerHTML = ''; // Clear loading content
+                    
                     // Ensure proper layout for container with strict boundaries
                     plotData.layout.height = 600;
                     plotData.layout.width = null; // Let it auto-size width
                     plotData.layout.autosize = true;
                     plotData.layout.margin = { l: 0, r: 0, t: 50, b: 0 };
-                    
-                    // Clear the container first
-                    document.getElementById('anomaly-map').innerHTML = '';
                     
                     Plotly.newPlot('anomaly-map', plotData.data, plotData.layout, {
                         responsive: true,
@@ -1567,6 +1683,9 @@
                             }
                         }
                     }, 300);
+                    
+                    hideMapLoading('anomaly-map');
+                    console.log('Anomaly map loaded successfully!');
                     
                 } catch (e) {
                     console.error('Failed to parse anomaly map data:', e);
@@ -1778,7 +1897,22 @@
                     </small>
                 </div>
             `;
+            
+            // Set a timeout to prevent infinite loading (60 seconds max)
+            setTimeout(() => {
+                const currentElement = document.getElementById(elementId);
+                if (currentElement && currentElement.innerHTML.includes('Loading Geographic Map')) {
+                    console.warn(`Map loading timeout for ${elementId}`);
+                    showError(elementId, 'Map loading timed out. Please refresh the page and try again.');
+                }
+            }, 60000);
         }
+    }
+    
+    function hideMapLoading(elementId) {
+        // This function is called when the map is successfully loaded
+        // The map content will replace the loading div automatically
+        console.log(`Map loading completed for ${elementId}`);
     }
     
     function showError(elementId, message) {
@@ -1794,12 +1928,8 @@
     }
     
     function formatNumber(num) {
-        if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M';
-        } else if (num >= 1000) {
-            return (num / 1000).toFixed(1) + 'K';
-        }
-        return num.toString();
+        // Use Intl.NumberFormat to display full numbers with proper comma separators
+        return new Intl.NumberFormat('en-US').format(num);
     }
 </script>
 {% endblock %}

@@ -69,15 +69,57 @@ class DataProcessor:
         """Standardize state and district names for geo matching"""
         df = df.copy()
         
-        # Common name mappings for geo matching
+        # State name standardization mapping
         state_mappings = {
-            'Jammu and Kashmir': 'Jammu and Kashmir',
-            'Daman and Diu': 'DNH and DD',
-            'Dadra and Nagar Haveli': 'DNH and DD',
-            'Puducherry': 'Puducherry'
+            # Case variations
+            'ODISHA': 'Odisha',
+            'odisha': 'Odisha',
+            'WEST BENGAL': 'West Bengal',
+            'WESTBENGAL': 'West Bengal',
+            'West  Bengal': 'West Bengal',
+            'West Bangal': 'West Bengal',
+            'West Bengli': 'West Bengal',
+            'West bengal': 'West Bengal',
+            'west Bengal': 'West Bengal',
+            'Westbengal': 'West Bengal',
+            'andhra pradesh': 'Andhra Pradesh',
+            
+            # Name variations
+            'Andaman & Nicobar Islands': 'Andaman and Nicobar Islands',
+            'Jammu & Kashmir': 'Jammu and Kashmir',
+            'Jammu And Kashmir': 'Jammu and Kashmir',
+            'Dadra & Nagar Haveli': 'Dadra and Nagar Haveli and Daman and Diu',
+            'Dadra and Nagar Haveli': 'Dadra and Nagar Haveli and Daman and Diu',
+            'The Dadra And Nagar Haveli And Daman And Diu': 'Dadra and Nagar Haveli and Daman and Diu',
+            'DNH and DD': 'Dadra and Nagar Haveli and Daman and Diu',
+            'Daman & Diu': 'Dadra and Nagar Haveli and Daman and Diu',
+            'Daman and Diu': 'Dadra and Nagar Haveli and Daman and Diu',
+            'Pondicherry': 'Puducherry',
+            'Orissa': 'Odisha',
+            'Uttaranchal': 'Uttarakhand',
+            'Chhatisgarh': 'Chhattisgarh',
+            'Tamilnadu': 'Tamil Nadu',
+            
+            # Invalid entries (cities/districts that should be mapped to their states)
+            'Jaipur': 'Rajasthan',
+            'Nagpur': 'Maharashtra', 
+            'Darbhanga': 'Bihar',
+            'Madanapalle': 'Andhra Pradesh',
+            'Puttenahalli': 'Karnataka',
+            'Raja Annamalai Puram': 'Tamil Nadu',
+            'BALANAGAR': 'Telangana',
+            
+            # Remove invalid numeric entries
+            '100000': None
         }
         
+        # Apply state mappings
         df['state'] = df['state'].replace(state_mappings)
+        
+        # Remove rows with None state (invalid entries)
+        df = df.dropna(subset=['state'])
+        
+        # Clean district names
         df['district'] = df['district'].str.strip()
         df['state'] = df['state'].str.strip()
         

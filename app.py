@@ -14,10 +14,7 @@ from pathlib import Path
 import sys
 import os
 
-# Add the oldprj directory to Python path to import modules
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'oldprj'))
-
-# Import custom modules from old project
+# Import custom modules
 from data_processor import DataProcessor
 from metrics_calculator import MetricsCalculator
 from pattern_discovery import PatternDiscovery
@@ -387,23 +384,53 @@ def create_anomaly_choropleth_map(gdf, anomaly_col, title):
     # Create location IDs
     gdf_wgs84['location_id'] = gdf_wgs84.index
     
-    # Define color mapping for anomaly flags
-    color_map = {
-        'critical': '#FF0000',  # Red
-        'warning': '#FFC107',   # Amber/Yellow
-        'normal': '#E8E8E8'     # Light Grey
-    }
-    
-    # Ensure all anomaly flags are present
+    # Handle anomaly column and create numeric mapping
     if anomaly_col in gdf_wgs84.columns:
-        gdf_wgs84[anomaly_col] = gdf_wgs84[anomaly_col].fillna('normal')
+        # Convert NaN values to 'nan' string for proper color mapping
+        gdf_wgs84[anomaly_col] = gdf_wgs84[anomaly_col].fillna('nan')
+        
+        # Debug: Print value counts
+        print(f"DEBUG: Anomaly flag distribution: {gdf_wgs84[anomaly_col].value_counts().to_dict()}")
+        
+        # Ensure only valid values are present
+        valid_values = ['critical', 'warning', 'normal', 'nan']
+        gdf_wgs84[anomaly_col] = gdf_wgs84[anomaly_col].apply(
+            lambda x: x if x in valid_values else 'nan'
+        )
+        
+        # Create numeric mapping for colors (required for choropleth)
+        color_mapping = {
+            'critical': 3,  # Red
+            'warning': 2,   # Yellow
+            'normal': 1,    # Light Grey
+            'nan': 0        # Purple
+        }
+        
+        # Create numeric column for plotting
+        numeric_col = f'{anomaly_col}_numeric'
+        gdf_wgs84[numeric_col] = gdf_wgs84[anomaly_col].map(color_mapping)
+        
+        # Create custom colorscale
+        colorscale = [
+            [0.0, '#9C27B0'],   # Purple for NaN
+            [0.33, '#E8E8E8'],  # Light Grey for normal
+            [0.66, '#FFC107'],  # Yellow for warning
+            [1.0, '#FF0000']    # Red for critical
+        ]
+        
     else:
-        return None
+        print(f"DEBUG: Column {anomaly_col} not found, creating default")
+        gdf_wgs84[anomaly_col] = 'nan'
+        numeric_col = f'{anomaly_col}_numeric'
+        gdf_wgs84[numeric_col] = 0
+        colorscale = [[0, '#9C27B0'], [1, '#9C27B0']]  # All purple
     
     # Prepare hover data
     hover_cols = []
     if 'state' in gdf_wgs84.columns:
         hover_cols.append('state')
+    elif 'st_nm' in gdf_wgs84.columns:
+        hover_cols.append('st_nm')
     if 'district' in gdf_wgs84.columns:
         hover_cols.append('district')
     if 'anomaly_score' in gdf_wgs84.columns:
@@ -411,33 +438,36 @@ def create_anomaly_choropleth_map(gdf, anomaly_col, title):
     if 'update_ratio' in gdf_wgs84.columns:
         hover_cols.append('update_ratio')
     
-    # Create the map with discrete colors
+    # Add the original anomaly flag to hover data
+    hover_cols.append(anomaly_col)
+    
+    # Create the map with continuous colorscale but discrete meaning
     fig = px.choropleth_mapbox(
         gdf_wgs84,
         geojson=geojson_data,
         locations='location_id',
-        color=anomaly_col,
-        color_discrete_map=color_map,
+        color=numeric_col,
+        color_continuous_scale=colorscale,
+        range_color=[0, 3],
         mapbox_style="open-street-map",
         zoom=4,
         center={"lat": 20.5937, "lon": 78.9629},
         opacity=0.8,
         title=title,
-        hover_data=hover_cols if hover_cols else None,
-        category_orders={anomaly_col: ['normal', 'warning', 'critical']}  # Order for legend
+        hover_data=hover_cols if hover_cols else None
     )
     
-    # Update layout
+    # Update layout and customize colorbar
     fig.update_layout(
         height=600,
         margin=dict(l=0, r=0, t=50, b=0),
-        legend=dict(
+        coloraxis_colorbar=dict(
             title="Anomaly Status",
-            orientation="v",
-            yanchor="top",
-            y=1,
-            xanchor="left",
-            x=1.02
+            titleside="right",
+            tickmode="array",
+            tickvals=[0, 1, 2, 3],
+            ticktext=["Missing Data", "Normal", "Warning", "Critical"],
+            len=0.7
         )
     )
     
@@ -514,24 +544,48 @@ def get_precomputed_metrics(df_with_metrics):
 
 def initialize_data():
     """Initialize data on app startup"""
-    print("Loading and processing data...")
+    print("📊 Loading and processing data...")
+    print("   ⏳ This may take 2-5 minutes for large datasets...")
+    
     df_with_metrics = load_and_process_data()
     if df_with_metrics is not None:
+        print("   ✅ Raw data loaded successfully!")
+        print("   🔄 Computing metrics and analytics...")
+        
         app_data['processed_data'] = get_precomputed_metrics(df_with_metrics)
-        print("Data loaded successfully!")
+        print("   ✅ Data processing completed!")
+        print("   🌐 Dashboard is now ready for use!")
     else:
-        print("Failed to load data")
+        print("   ❌ Failed to load data")
+        print("   💡 The dashboard will still start but may show errors")
 
 @app.route('/')
 def index():
     """Main dashboard page"""
     return render_template('index.html')
 
+@app.route('/api/status')
+def api_status():
+    """API endpoint to check if data is loaded and ready"""
+    if 'processed_data' not in app_data or app_data['processed_data'] is None:
+        return jsonify({
+            'status': 'loading',
+            'message': 'Data is still being processed. Please wait...'
+        }), 202  # 202 Accepted - request received but not yet processed
+    
+    return jsonify({
+        'status': 'ready',
+        'message': 'Data loaded successfully'
+    })
+
 @app.route('/api/overview')
 def api_overview():
     """API endpoint for national overview data"""
     if 'processed_data' not in app_data or app_data['processed_data'] is None:
-        return jsonify({'error': 'Data not loaded or processing failed'}), 500
+        return jsonify({
+            'error': 'Data is still being processed. Please wait and try again.',
+            'status': 'loading'
+        }), 202  # 202 Accepted - still processing
     
     try:
         data = app_data['processed_data']
@@ -556,7 +610,8 @@ def api_overview():
             'top_states': {
                 'states': top_states.index.tolist(),
                 'values': top_states.values.tolist()
-            }
+            },
+            'status': 'ready'
         })
     except Exception as e:
         return jsonify({'error': f'Failed to process overview data: {str(e)}'}), 500
@@ -565,7 +620,10 @@ def api_overview():
 def api_state_map():
     """API endpoint for state-level map data - fallback to bar chart if geo data unavailable"""
     if 'processed_data' not in app_data or app_data['processed_data'] is None:
-        return jsonify({'error': 'Data not loaded or processing failed'}), 500
+        return jsonify({
+            'error': 'Data is still being processed. Please wait and try again.',
+            'status': 'loading'
+        }), 202  # 202 Accepted - still processing
     
     try:
         data = app_data['processed_data']
@@ -874,13 +932,24 @@ def api_anomalies():
             }
             anomalies_df = anomalies['anomalies_df']
         
-        # Get critical anomalies
-        critical_anomalies = anomalies_df[
-            anomalies_df['anomaly_flag'] == 'critical'
-        ][['state', 'district', 'update_ratio', 'anomaly_score']].head(20)
+        # Get critical anomalies - handle different column names
+        critical_anomalies_df = anomalies_df[anomalies_df['anomaly_flag'] == 'critical']
         
-        # Rename columns to match expected format
-        critical_anomalies = critical_anomalies.rename(columns={'update_ratio': 'update_ratio_mean'})
+        # Select columns that exist
+        available_cols = ['state', 'district']
+        if 'update_ratio' in critical_anomalies_df.columns:
+            available_cols.append('update_ratio')
+        elif 'update_ratio_mean' in critical_anomalies_df.columns:
+            available_cols.append('update_ratio_mean')
+        
+        if 'anomaly_score' in critical_anomalies_df.columns:
+            available_cols.append('anomaly_score')
+        
+        critical_anomalies = critical_anomalies_df[available_cols].head(20)
+        
+        # Ensure consistent column naming
+        if 'update_ratio' in critical_anomalies.columns and 'update_ratio_mean' not in critical_anomalies.columns:
+            critical_anomalies = critical_anomalies.rename(columns={'update_ratio': 'update_ratio_mean'})
         
         return jsonify({
             'summary': summary,
@@ -901,9 +970,185 @@ def api_anomaly_map():
         data = app_data['processed_data']
         print(f"DEBUG: Starting anomaly map API")
         
+        # Get anomaly data using the proper AnomalyDetector class
+        if data['anomalies'] is None:
+            print(f"DEBUG: Creating anomaly detection using AnomalyDetector class")
+            try:
+                from anomaly_detection import AnomalyDetector
+                anomaly_detector = AnomalyDetector(data['full_data'])
+                anomaly_result = anomaly_detector.get_anomaly_summary()
+                anomalies_df = anomaly_result['anomalies_df']
+                print(f"DEBUG: AnomalyDetector successful, {len(anomalies_df)} records")
+            except Exception as e:
+                print(f"DEBUG: AnomalyDetector failed: {e}, using fallback")
+                # Fallback to simple detection
+                district_metrics = data['district_metrics']
+                anomalies_df = district_metrics.copy()
+                anomalies_df['anomaly_flag'] = 'normal'  # Default to normal
+                anomalies_df['anomaly_score'] = 0.0
+        else:
+            print(f"DEBUG: Using existing anomaly data")
+            anomalies_df = data['anomalies']['anomalies_df']
+        
+        print(f"DEBUG: Anomaly data prepared, {len(anomalies_df)} records")
+        
+        # Check what geographic data is available
+        print(f"DEBUG: Checking geographic data availability")
+        print(f"DEBUG: district_geo available: {data['district_geo'] is not None}")
+        print(f"DEBUG: state_geo available: {data['state_geo'] is not None}")
+        
+        if data['state_geo'] is not None:
+            print(f"DEBUG: state_geo has geometry: {hasattr(data['state_geo'], 'geometry')}")
+            print(f"DEBUG: state_geo shape: {data['state_geo'].shape}")
+        
+        # Use state-level data for now (simpler and more reliable)
+        if data['state_geo'] is not None and hasattr(data['state_geo'], 'geometry'):
+            state_geo = data['state_geo']
+            print(f"DEBUG: Using state-level geographic data for anomaly map")
+            
+            # Filter geographic data to only include state-level boundaries
+            # Remove district-level boundaries to match our state-level Aadhaar data
+            if 'state' in state_geo.columns:
+                # Group by state to get only one boundary per state
+                state_geo_filtered = state_geo.groupby('state').first().reset_index()
+                print(f"DEBUG: Filtered from {len(state_geo)} to {len(state_geo_filtered)} state boundaries")
+                state_geo = state_geo_filtered
+            
+            # Aggregate district anomalies to state level
+            # Handle different column names from AnomalyDetector
+            update_ratio_col = 'update_ratio_mean' if 'update_ratio_mean' in anomalies_df.columns else 'update_ratio'
+            
+            agg_dict = {}
+            if update_ratio_col in anomalies_df.columns:
+                agg_dict[update_ratio_col] = 'mean'
+            
+            state_anomalies = anomalies_df.groupby('state').agg(agg_dict).reset_index()
+            
+            # Add anomaly_score if it exists, otherwise create it
+            if 'anomaly_score' in anomalies_df.columns:
+                state_anomalies['anomaly_score'] = anomalies_df.groupby('state')['anomaly_score'].mean().values
+            else:
+                # Create a simple anomaly score based on update_ratio
+                if update_ratio_col in state_anomalies.columns:
+                    max_ratio = state_anomalies[update_ratio_col].max()
+                    state_anomalies['anomaly_score'] = state_anomalies[update_ratio_col] / (max_ratio + 0.001)
+                else:
+                    state_anomalies['anomaly_score'] = 0.0
+            
+            # Determine state-level anomaly flag based on worst district in state
+            state_flags = anomalies_df.groupby('state')['anomaly_flag'].apply(
+                lambda x: 'critical' if 'critical' in x.values 
+                else 'warning' if 'warning' in x.values 
+                else 'normal'
+            ).reset_index()
+            
+            state_anomalies = state_anomalies.merge(state_flags, on='state')
+            print(f"DEBUG: State anomalies aggregated: {len(state_anomalies)} states")
+            
+            # Create the anomaly choropleth map using existing working function
+            # Use the same approach as the other maps that work
+            merged_geo = state_geo.copy()
+            
+            # Add anomaly data to geo data with improved matching
+            merged_geo = state_geo.copy()
+            merged_geo['anomaly_flag'] = 'nan'  # Default to nan
+            merged_geo['anomaly_score'] = 0.0
+            merged_geo['update_ratio'] = 0.0
+            
+            # Create a mapping of state names for better matching
+            geo_state_names = {}
+            if 'state' in merged_geo.columns:
+                for idx, state in merged_geo['state'].items():
+                    if pd.notna(state):
+                        clean_state = state.lower().strip()
+                        geo_state_names[clean_state] = idx
+            if 'st_nm' in merged_geo.columns:
+                for idx, state in merged_geo['st_nm'].items():
+                    if pd.notna(state):
+                        clean_state = state.lower().strip()
+                        geo_state_names[clean_state] = idx
+            
+            anomaly_state_names = set(state_anomalies['state'].str.lower().str.strip())
+            
+            print(f"DEBUG: Geo states: {sorted(list(geo_state_names.keys()))}")
+            print(f"DEBUG: Anomaly states: {sorted(list(anomaly_state_names))}")
+            
+            # Find exact matches and mismatches
+            exact_matches = anomaly_state_names.intersection(set(geo_state_names.keys()))
+            missing_in_geo = anomaly_state_names - set(geo_state_names.keys())
+            
+            print(f"DEBUG: Exact matches: {len(exact_matches)}")
+            print(f"DEBUG: Missing in geo: {len(missing_in_geo)} - {sorted(list(missing_in_geo))}")
+            
+            matched_count = 0
+            for idx, row in state_anomalies.iterrows():
+                state_name = row['state'].strip()
+                state_lower = state_name.lower()
+                
+                # Try exact match first
+                geo_idx = geo_state_names.get(state_lower)
+                
+                # If no exact match, try partial match
+                if geo_idx is None:
+                    for geo_state, g_idx in geo_state_names.items():
+                        if (state_lower in geo_state and len(state_lower) > 3) or \
+                           (geo_state in state_lower and len(geo_state) > 3):
+                            geo_idx = g_idx
+                            print(f"DEBUG: Partial match: '{state_name}' -> '{geo_state}'")
+                            break
+                
+                if geo_idx is not None:
+                    merged_geo.at[geo_idx, 'anomaly_flag'] = row['anomaly_flag']
+                    merged_geo.at[geo_idx, 'anomaly_score'] = row['anomaly_score']
+                    # Handle different update ratio column names
+                    if update_ratio_col in row:
+                        merged_geo.at[geo_idx, 'update_ratio'] = row[update_ratio_col]
+                    matched_count += 1
+                else:
+                    print(f"DEBUG: No match found for state: '{state_name}'")
+            
+            print(f"DEBUG: Matched {matched_count}/{len(state_anomalies)} states")
+            
+            # Count final anomaly flags
+            final_counts = merged_geo['anomaly_flag'].value_counts()
+            print(f"DEBUG: Final anomaly distribution: {final_counts.to_dict()}")
+            
+            print(f"DEBUG: Creating choropleth map")
+            
+            # Create the anomaly choropleth map
+            fig = create_anomaly_choropleth_map(
+                merged_geo, 
+                'anomaly_flag', 
+                'Anomaly Status Map - State Level (Red=Critical, Yellow=Warning, Grey=Normal)'
+            )
+            
+            if fig:
+                print(f"DEBUG: Map created successfully")
+                return fig.to_json()
+            else:
+                print(f"DEBUG: Map creation failed")
+                return jsonify({'error': 'Failed to create anomaly map'}), 500
+        else:
+            print(f"DEBUG: No geographic data available")
+            return jsonify({'error': 'Geographic data not available for anomaly map'}), 500
+        
+    except Exception as e:
+        print(f"Error in anomaly map API: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Failed to process anomaly map: {str(e)}'}), 500
+
+@app.route('/api/debug/anomaly-data')
+def api_debug_anomaly_data():
+    """Debug endpoint to check anomaly data quality"""
+    if 'processed_data' not in app_data or app_data['processed_data'] is None:
+        return jsonify({'error': 'Data not loaded or processing failed'}), 500
+    
+    try:
+        data = app_data['processed_data']
+        
         # Get anomaly data (reuse logic from /api/anomalies)
         if data['anomalies'] is None:
-            print(f"DEBUG: Creating anomaly detection")
             # Create basic anomaly detection if not available
             district_metrics = data['district_metrics']
             
@@ -945,111 +1190,58 @@ def api_anomaly_map():
                 return 'normal'
             
             anomalies_df['anomaly_flag'] = anomalies_df.apply(classify_anomaly, axis=1)
-            
-            # Calculate anomaly score (0-1, higher = more anomalous)
-            anomalies_df['anomaly_score'] = 0.0
-            
-            # Score based on deviation from state mean
-            for idx, row in anomalies_df.iterrows():
-                score = 0.0
-                if pd.notna(row['state_mean']) and pd.notna(row['state_std']) and row['state_std'] > 0:
-                    z_score = abs(row['update_ratio'] - row['state_mean']) / row['state_std']
-                    score += min(z_score / 5.0, 1.0) * 0.6  # Cap at 1.0, weight 60%
-                
-                # Score based on compliance if available
-                if 'biometric_compliance' in row and pd.notna(row['biometric_compliance']):
-                    score += (1 - min(row['biometric_compliance'], 1.0)) * 0.4  # Weight 40%
-                
-                anomalies_df.at[idx, 'anomaly_score'] = min(score, 1.0)
         else:
-            print(f"DEBUG: Using existing anomaly data")
-            # Use existing anomalies data
             anomalies_df = data['anomalies']['anomalies_df']
         
-        print(f"DEBUG: Anomaly data prepared, {len(anomalies_df)} records")
+        # Aggregate to state level
+        # Use the correct column name based on what's available
+        update_ratio_col = 'update_ratio_mean' if 'update_ratio_mean' in anomalies_df.columns else 'update_ratio'
         
-        # Check what geographic data is available
-        print(f"DEBUG: Checking geographic data availability")
-        print(f"DEBUG: district_geo available: {data['district_geo'] is not None}")
-        print(f"DEBUG: state_geo available: {data['state_geo'] is not None}")
+        state_anomalies = anomalies_df.groupby('state').agg({
+            update_ratio_col: 'mean'
+        }).reset_index()
         
-        if data['state_geo'] is not None:
-            print(f"DEBUG: state_geo has geometry: {hasattr(data['state_geo'], 'geometry')}")
-            print(f"DEBUG: state_geo shape: {data['state_geo'].shape}")
+        # Rename for consistency
+        state_anomalies = state_anomalies.rename(columns={update_ratio_col: 'update_ratio'})
         
-        # Use state-level data for now (simpler and more reliable)
-        if data['state_geo'] is not None and hasattr(data['state_geo'], 'geometry'):
-            state_geo = data['state_geo']
-            print(f"DEBUG: Using state-level geographic data for anomaly map")
-            
-            # Aggregate district anomalies to state level
-            state_anomalies = anomalies_df.groupby('state').agg({
-                'anomaly_score': 'mean',
-                'update_ratio': 'mean'
-            }).reset_index()
-            
-            # Determine state-level anomaly flag based on worst district in state
-            state_flags = anomalies_df.groupby('state')['anomaly_flag'].apply(
-                lambda x: 'critical' if 'critical' in x.values 
-                else 'warning' if 'warning' in x.values 
-                else 'normal'
-            ).reset_index()
-            
-            state_anomalies = state_anomalies.merge(state_flags, on='state')
-            print(f"DEBUG: State anomalies aggregated: {len(state_anomalies)} states")
-            
-            # Create the anomaly choropleth map using existing working function
-            # Use the same approach as the other maps that work
-            merged_geo = state_geo.copy()
-            
-            # Add anomaly data to geo data
-            for idx, row in state_anomalies.iterrows():
-                state_name = row['state']
-                # Find matching state in geo data (try different name variations)
-                geo_match = merged_geo[
-                    (merged_geo['state'].str.lower().str.contains(state_name.lower(), na=False)) |
-                    (merged_geo['st_nm'].str.lower().str.contains(state_name.lower(), na=False) if 'st_nm' in merged_geo.columns else False)
-                ]
-                
-                if len(geo_match) > 0:
-                    geo_idx = geo_match.index[0]
-                    merged_geo.at[geo_idx, 'anomaly_flag'] = row['anomaly_flag']
-                    merged_geo.at[geo_idx, 'anomaly_score'] = row['anomaly_score']
-                    merged_geo.at[geo_idx, 'update_ratio'] = row['update_ratio']
-            
-            # Fill missing values
-            merged_geo['anomaly_flag'] = merged_geo['anomaly_flag'].fillna('normal')
-            merged_geo['anomaly_score'] = merged_geo['anomaly_score'].fillna(0.0)
-            merged_geo['update_ratio'] = merged_geo['update_ratio'].fillna(0.0)
-            
-            print(f"DEBUG: Creating choropleth map")
-            
-            # Create the anomaly choropleth map
-            fig = create_anomaly_choropleth_map(
-                merged_geo, 
-                'anomaly_flag', 
-                'Anomaly Status Map - State Level (Red=Critical, Yellow=Warning, Grey=Normal)'
-            )
-            
-            if fig:
-                print(f"DEBUG: Map created successfully")
-                return fig.to_json()
-            else:
-                print(f"DEBUG: Map creation failed")
-                return jsonify({'error': 'Failed to create anomaly map'}), 500
+        # Add anomaly_score if it exists, otherwise create it
+        if 'anomaly_score' in anomalies_df.columns:
+            state_anomalies['anomaly_score'] = anomalies_df.groupby('state')['anomaly_score'].mean().values
         else:
-            print(f"DEBUG: No geographic data available")
-            return jsonify({'error': 'Geographic data not available for anomaly map'}), 500
+            # Create a simple anomaly score based on update_ratio
+            max_ratio = state_anomalies['update_ratio'].max()
+            if max_ratio > 0:
+                state_anomalies['anomaly_score'] = state_anomalies['update_ratio'] / max_ratio
+            else:
+                state_anomalies['anomaly_score'] = 0.0
+        
+        # Determine state-level anomaly flag
+        state_flags = anomalies_df.groupby('state')['anomaly_flag'].apply(
+            lambda x: 'critical' if 'critical' in x.values 
+            else 'warning' if 'warning' in x.values 
+            else 'normal'
+        ).reset_index()
+        
+        state_anomalies = state_anomalies.merge(state_flags, on='state')
+        
+        # Check geo data
+        state_geo = data['state_geo']
+        
+        debug_info = {
+            'anomaly_states': sorted(state_anomalies['state'].unique().tolist()),
+            'geo_states': sorted(state_geo['state'].unique().tolist()) if 'state' in state_geo.columns else [],
+            'geo_st_nm': sorted(state_geo['st_nm'].unique().tolist()) if 'st_nm' in state_geo.columns else [],
+            'anomaly_flags': state_anomalies['anomaly_flag'].value_counts().to_dict(),
+            'total_anomaly_states': len(state_anomalies),
+            'total_geo_states': len(state_geo),
+            'sample_anomaly_data': state_anomalies.head(10).to_dict('records'),
+            'sample_geo_data': state_geo[['state', 'st_nm']].head(10).to_dict('records') if 'st_nm' in state_geo.columns else state_geo[['state']].head(10).to_dict('records')
+        }
+        
+        return jsonify(debug_info)
         
     except Exception as e:
-        print(f"Error in anomaly map API: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': f'Failed to process anomaly map: {str(e)}'}), 500
-        
-    except Exception as e:
-        print(f"Error in anomalies API: {e}")
-        return jsonify({'error': f'Failed to process anomalies: {str(e)}'}), 500
+        return jsonify({'error': f'Debug failed: {str(e)}'}), 500
 
 @app.route('/api/comparison')
 def api_comparison():
@@ -1410,8 +1602,36 @@ def api_test_simple_map():
         return jsonify({'error': f'Test map failed: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    # Initialize data on startup
-    initialize_data()
+    print("🚀 Starting Aadhaar Analytics Dashboard")
+    print("=" * 50)
+    
+    # Check if data files exist
+    from pathlib import Path
+    project_root = Path(__file__).parent
+    data_path = project_root / 'api_data_aadhar_biometric' / 'api_data_aadhar_biometric'
+    if not data_path.exists():
+        print("⚠️  Warning: Data files not found in project directory")
+        print("   Make sure the CSV data folders are present in the project root")
+    
+    # Initialize data
+    print("📊 Initializing data processing...")
+    try:
+        initialize_data()
+        print("✅ Data initialization completed successfully!")
+    except Exception as e:
+        print(f"❌ Data initialization failed: {e}")
+        print("   The dashboard will still start but may not have data")
+    
+    print("\n🌐 Dashboard will be available at:")
+    print("   Local:    http://localhost:5000")
+    print("   Network:  http://0.0.0.0:5000")
+    print("\n💡 Press Ctrl+C to stop the server")
+    print("=" * 50)
     
     # Run the Flask app
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(
+        debug=True,
+        host='0.0.0.0',
+        port=5000,
+        threaded=True
+    )

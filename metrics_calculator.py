@@ -53,6 +53,11 @@ class MetricsCalculator:
     def calculate_biometric_compliance(self) -> pd.Series:
         """Calculate biometric compliance (lifecycle metric)"""
         try:
+            # Check if required columns exist
+            if 'bio_age_17_' not in self.df.columns or 'age_5_17' not in self.df.columns:
+                print("Warning: Required columns for biometric compliance not found, returning default values")
+                return pd.Series(0.5, index=self.df.index)  # Default neutral compliance
+            
             # Sort by year_month and district to calculate lag
             df_sorted = self.df.sort_values(['district', 'year_month'])
             
@@ -63,16 +68,20 @@ class MetricsCalculator:
             compliance = np.where(
                 df_sorted['age_5_17_lag'] > 0,
                 df_sorted['bio_age_17_'].fillna(0) / df_sorted['age_5_17_lag'],
-                0
+                0.5  # Default neutral compliance when no lag data
             )
             
             # Reorder back to original index
             df_sorted['biometric_compliance'] = compliance
-            return df_sorted['biometric_compliance'].reindex(self.df.index).fillna(0)
+            result = df_sorted['biometric_compliance'].reindex(self.df.index).fillna(0.5)
+            
+            print(f"Biometric compliance calculated successfully: min={result.min():.3f}, max={result.max():.3f}, mean={result.mean():.3f}")
+            return result
+            
         except Exception as e:
             print(f"Warning: Biometric compliance calculation failed: {e}")
-            # Return zeros if calculation fails
-            return pd.Series(0, index=self.df.index)
+            # Return neutral compliance values if calculation fails
+            return pd.Series(0.5, index=self.df.index)
     
     def calculate_enrolment_growth_rate(self) -> pd.DataFrame:
         """Calculate enrolment growth rate by district"""

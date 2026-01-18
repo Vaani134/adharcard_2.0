@@ -8,9 +8,7 @@ The Flask-based Aadhaar Analytics Dashboard has been successfully created and is
 
 ```
 newprj/
-├── app.py                    # Main Flask application (full version)
-├── demo_app.py              # Demo version with sample data
-├── run.py                   # Application runner
+├── app.py                    # Main Flask application
 ├── test_app.py              # Test script for validation
 ├── requirements.txt         # Python dependencies
 ├── README.md               # Comprehensive documentation
@@ -32,8 +30,10 @@ newprj/
 │   └── css/
 │       └── custom.css      # Custom styling
 └── 
-└── # Data Dependencies (from oldprj)
-    └── ../oldprj/          # Original project with data files
+└── # Data Files (included locally)
+    ├── api_data_aadhar_biometric/    # Biometric update data
+    ├── api_data_aadhar_demographic/  # Demographic update data
+    └── api_data_aadhar_enrolment/    # Enrolment data
 ```
 
 ## 🚀 Quick Start Options
@@ -51,9 +51,9 @@ python demo_app.py
 ### Option 2: Full Version (With Real Data)
 ```bash
 cd newprj
-python run.py
+python app.py
 ```
-- Uses real data from oldprj directory
+- Uses real data from local CSV files
 - Takes 2-5 minutes to load initially
 - Full analytics capabilities
 - Access at: http://localhost:5000
@@ -72,7 +72,7 @@ python test_app.py
 ### Required
 - Python 3.8+
 - All dependencies from requirements.txt
-- oldprj directory with data files (for full version)
+- CSV data files (included in project)
 
 ### Install Dependencies
 ```bash
@@ -85,11 +85,23 @@ pip install -r requirements.txt
 ### Data Location
 The full version expects data in the following structure:
 ```
-oldprj/
+api_data_aadhar_biometric/
 ├── api_data_aadhar_biometric/
+│   ├── api_data_aadhar_biometric_0_500000.csv
+│   ├── api_data_aadhar_biometric_500000_1000000.csv
+│   └── ... (more CSV files)
+
+api_data_aadhar_demographic/
 ├── api_data_aadhar_demographic/
+│   ├── api_data_aadhar_demographic_0_500000.csv
+│   └── ... (more CSV files)
+
+api_data_aadhar_enrolment/
 ├── api_data_aadhar_enrolment/
-└── india-maps-data/
+│   └── ... (CSV files)
+
+india-maps-data/
+└── ... (geographic data)
 ```
 
 ### Environment Variables (Optional)
@@ -163,8 +175,8 @@ export FLASK_DEBUG=1         # For debug mode
 **Problem**: "Data not loaded" errors
 **Solution**: 
 - Use demo mode: `python demo_app.py`
-- Check if oldprj directory exists
-- Verify CSV files are present
+- Check if CSV data folders exist in project root
+- Verify CSV files are present in the data directories
 
 #### 2. Import Errors
 **Problem**: Module import failures
@@ -221,15 +233,14 @@ python -c "from app import app; app.run(port=5001)"
 ### Testing
 ```bash
 python test_app.py      # Validate setup
-python demo_app.py      # Test with sample data
-python run.py           # Test with real data
+python app.py           # Start the dashboard
 ```
 
 ## 🚀 Deployment Options
 
 ### Development
 ```bash
-python run.py  # or python demo_app.py
+python app.py
 ```
 
 ### Production (Gunicorn)
@@ -244,7 +255,7 @@ FROM python:3.10
 COPY . /app
 WORKDIR /app
 RUN pip install -r requirements.txt
-CMD ["python", "run.py"]
+CMD ["python", "app.py"]
 ```
 
 ## 📈 Next Steps
