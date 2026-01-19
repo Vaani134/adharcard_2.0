@@ -27,6 +27,11 @@ from geo_utils import GeoJSONUtils
 app = Flask(__name__)
 app.secret_key = 'aadhaar_analytics_dashboard_2025'
 
+# Production optimizations
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 year cache for static files
+app.config['JSON_SORT_KEYS'] = False  # Faster JSON serialization
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False  # Compact JSON in production
+
 # Global data storage
 app_data = {}
 
@@ -1675,16 +1680,21 @@ if __name__ == '__main__':
         print(f"❌ Data initialization failed: {e}")
         print("   The dashboard will still start but may not have data")
     
-    print("\n🌐 Dashboard will be available at:")
-    print("   Local:    http://localhost:5000")
-    print("   Network:  http://0.0.0.0:5000")
+    # Get port from environment variable (Render sets this automatically)
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    
+    print(f"\n🌐 Dashboard will be available at:")
+    print(f"   Local:    http://localhost:{port}")
+    print(f"   Network:  http://0.0.0.0:{port}")
     print("\n💡 Press Ctrl+C to stop the server")
     print("=" * 50)
     
     # Run the Flask app
+    # Note: Gunicorn will ignore this when deployed, but it works for local development
     app.run(
-        debug=True,
+        debug=False,  # Set to False for production
         host='0.0.0.0',
-        port=5000,
+        port=port,
         threaded=True
     )
