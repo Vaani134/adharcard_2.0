@@ -1,32 +1,32 @@
 # Flask Web Framework
-Flask==2.3.3
-Werkzeug==2.3.7
+Flask==3.0.0
+Werkzeug==3.0.1
 gunicorn==21.2.0
 
-# Data Processing
-pandas==2.1.1
-numpy==1.24.3
+# Data Processing (Python 3.13 compatible)
+pandas==2.2.0
+numpy==1.26.3
 
 # Visualization
-plotly==5.17.0
+plotly==5.18.0
 
-# Geospatial (optimized for cloud deployment)
-geopandas==0.13.2
-shapely==2.0.1
-fiona==1.9.4
-pyproj==3.6.0
+# Geospatial (Python 3.13 compatible)
+geopandas==0.14.2
+shapely==2.0.2
+fiona==1.9.5
+pyproj==3.6.1
 
-# Scientific Computing
-scikit-learn==1.3.0
-scipy==1.11.3
+# Scientific Computing (Python 3.13 compatible)
+scikit-learn==1.4.0
+scipy==1.12.0
 
 # Utilities
 python-dateutil==2.8.2
-pytz==2023.3
+pytz==2024.1
 
 # Development
 python-dotenv==1.0.0
 
-# System dependencies for geospatial libraries
-wheel==0.41.2
-setuptools==68.2.2
+# System dependencies
+wheel==0.42.0
+setuptools==69.0.3

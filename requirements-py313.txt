@@ -1,4 +1,4 @@
-# Lightweight version for deployment (Python 3.13 compatible)
+# Python 3.13 compatible versions
 # Flask Web Framework
 Flask==3.0.0
 Werkzeug==3.0.1
@@ -11,8 +11,15 @@ numpy==1.26.3
 # Visualization
 plotly==5.18.0
 
-# Scientific Computing (essential only)
+# Geospatial (Python 3.13 compatible) - latest versions
+geopandas==0.14.2
+shapely==2.0.2
+fiona==1.9.5
+pyproj==3.6.1
+
+# Scientific Computing (Python 3.13 compatible)
 scikit-learn==1.4.0
+scipy==1.12.0
 
 # Utilities
 python-dateutil==2.8.2
