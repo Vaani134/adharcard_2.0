@@ -1529,77 +1529,130 @@ def api_debug_states():
     except Exception as e:
         return jsonify({'error': f'Debug states failed: {str(e)}'}), 500
 
-@app.route('/api/test/simple-map')
-def api_test_simple_map():
-    """Simple test map - choropleth if available, bar chart as fallback"""
+@app.route('/api/export/<export_type>')
+def api_export_data(export_type):
+    """Export dashboard data in various formats"""
+    if 'processed_data' not in app_data or app_data['processed_data'] is None:
+        return jsonify({'error': 'No data available for export'}), 500
+    
     try:
-        # Try to create a choropleth map with actual geo data
-        data = app_data.get('processed_data')
-        if data and data.get('state_geo') is not None:
-            try:
-                state_geo = data['state_geo']
+        data = app_data['processed_data']
+        
+        if export_type == 'overview':
+            # Export overview/summary data
+            export_data = {
+                'export_info': {
+                    'type': 'Aadhaar Analytics Overview',
+                    'generated_at': pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'total_records': len(data['full_data']) if data['full_data'] is not None else 0
+                },
+                'kpis': {
+                    'total_holders': int(data['district_metrics']['total_holders'].sum()),
+                    'total_updates': int(data['district_metrics']['total_updates'].sum()),
+                    'avg_update_ratio': float(data['district_metrics']['update_ratio'].mean()),
+                    'total_districts': len(data['district_metrics']),
+                    'total_states': len(data['district_metrics']['state'].unique())
+                },
+                'top_states': data['state_metrics'].groupby('state')['update_ratio'].mean().sort_values(ascending=False).head(10).to_dict(),
+                'anomaly_summary': data['anomalies']['anomalies_df'].groupby('anomaly_flag').size().to_dict() if data['anomalies'] else {}
+            }
+            
+        elif export_type == 'district_metrics':
+            # Export detailed district-level metrics
+            df = data['district_metrics'].copy()
+            # Round numeric columns for cleaner export
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+            df[numeric_cols] = df[numeric_cols].round(3)
+            export_data = df.to_dict('records')
+            
+        elif export_type == 'state_metrics':
+            # Export state-level aggregated metrics
+            df = data['state_metrics'].copy()
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+            df[numeric_cols] = df[numeric_cols].round(3)
+            export_data = df.to_dict('records')
+            
+        elif export_type == 'anomalies':
+            # Export anomaly detection results
+            if data['anomalies'] and data['anomalies']['anomalies_df'] is not None:
+                df = data['anomalies']['anomalies_df'].copy()
+                numeric_cols = df.select_dtypes(include=[np.number]).columns
+                df[numeric_cols] = df[numeric_cols].round(3)
+                export_data = df.to_dict('records')
+            else:
+                export_data = {'message': 'No anomaly data available'}
                 
-                # Create a simple test with the first few states
-                test_geo = state_geo.head(10).copy()
-                
-                # Add test values
-                test_values = [2.5, 1.8, 3.2, 2.1, 2.8, 1.5, 1.9, 2.3, 1.7, 1.4]
-                test_geo['test_value'] = test_values[:len(test_geo)]
-                
-                # Create choropleth map
-                fig = create_simple_choropleth_map(
-                    test_geo,
-                    'test_value',
-                    'Test Choropleth Map - Different Colors',
-                    'RdYlBu_r'
-                )
-                
-                if fig:
-                    return fig.to_json()
-            except Exception as geo_error:
-                print(f"Choropleth test failed: {geo_error}")
+        elif export_type == 'full_dataset':
+            # Export complete processed dataset (limited to prevent huge downloads)
+            if data['full_data'] is not None:
+                df = data['full_data'].head(10000).copy()  # Limit to 10k records
+                numeric_cols = df.select_dtypes(include=[np.number]).columns
+                df[numeric_cols] = df[numeric_cols].round(3)
+                export_data = {
+                    'note': 'Limited to first 10,000 records for performance',
+                    'total_available': len(data['full_data']),
+                    'data': df.to_dict('records')
+                }
+            else:
+                export_data = {'message': 'No full dataset available'}
+        else:
+            return jsonify({'error': 'Invalid export type'}), 400
         
-        # Fallback: Create test bar chart
-        print("Creating test bar chart")
-        test_data = [
-            {'state': 'Maharashtra', 'value': 2.5},
-            {'state': 'Uttar Pradesh', 'value': 1.8},
-            {'state': 'Karnataka', 'value': 3.2},
-            {'state': 'Gujarat', 'value': 2.1},
-            {'state': 'Tamil Nadu', 'value': 2.8},
-            {'state': 'West Bengal', 'value': 1.5},
-            {'state': 'Rajasthan', 'value': 1.9},
-            {'state': 'Andhra Pradesh', 'value': 2.3},
-            {'state': 'Madhya Pradesh', 'value': 1.7},
-            {'state': 'Odisha', 'value': 1.4}
-        ]
-        
-        import pandas as pd
-        df = pd.DataFrame(test_data)
-        
-        # Create bar chart with proper colors
-        fig = px.bar(
-            df,
-            x='state',
-            y='value',
-            color='value',
-            color_continuous_scale='RdYlBu_r',
-            title='Test Map - Different Colors (Bar Chart View)',
-            labels={'value': 'Test Value', 'state': 'State'},
-            hover_data={'state': True, 'value': ':.2f'}
-        )
-        
-        fig.update_layout(
-            height=600, 
-            margin={"r": 0, "t": 50, "l": 60, "b": 120},
-            showlegend=False,
-            xaxis={'tickangle': -45, 'tickfont': {'size': 10}}
-        )
-        
-        return fig.to_json()
+        # Return JSON data
+        response = jsonify(export_data)
+        response.headers['Content-Disposition'] = f'attachment; filename=aadhaar_analytics_{export_type}_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.json'
+        return response
         
     except Exception as e:
-        return jsonify({'error': f'Test map failed: {str(e)}'}), 500
+        return jsonify({'error': f'Export failed: {str(e)}'}), 500
+
+@app.route('/api/export/csv/<export_type>')
+def api_export_csv(export_type):
+    """Export dashboard data as CSV files"""
+    if 'processed_data' not in app_data or app_data['processed_data'] is None:
+        return jsonify({'error': 'No data available for export'}), 500
+    
+    try:
+        from flask import make_response
+        import io
+        
+        data = app_data['processed_data']
+        
+        if export_type == 'district_metrics':
+            df = data['district_metrics'].copy()
+        elif export_type == 'state_metrics':
+            df = data['state_metrics'].copy()
+        elif export_type == 'anomalies':
+            if data['anomalies'] and data['anomalies']['anomalies_df'] is not None:
+                df = data['anomalies']['anomalies_df'].copy()
+            else:
+                return jsonify({'error': 'No anomaly data available'}), 400
+        elif export_type == 'full_dataset':
+            if data['full_data'] is not None:
+                df = data['full_data'].head(10000).copy()  # Limit for performance
+            else:
+                return jsonify({'error': 'No full dataset available'}), 400
+        else:
+            return jsonify({'error': 'Invalid export type for CSV'}), 400
+        
+        # Round numeric columns
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        df[numeric_cols] = df[numeric_cols].round(3)
+        
+        # Create CSV
+        output = io.StringIO()
+        df.to_csv(output, index=False)
+        csv_data = output.getvalue()
+        
+        # Create response
+        response = make_response(csv_data)
+        response.headers['Content-Type'] = 'text/csv'
+        response.headers['Content-Disposition'] = f'attachment; filename=aadhaar_analytics_{export_type}_{pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")}.csv'
+        
+        return response
+        
+    except Exception as e:
+        return jsonify({'error': f'CSV export failed: {str(e)}'}), 500
 
 if __name__ == '__main__':
     print("🚀 Starting Aadhaar Analytics Dashboard")

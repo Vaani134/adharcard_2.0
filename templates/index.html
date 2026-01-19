@@ -510,31 +510,6 @@
                                 <p>Loading technical information...</p>
                             </div>
                         </div>
-                        
-                        <div class="card mt-3">
-                            <div class="card-header">
-                                <h5 class="card-title mb-0">Quick Actions</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-grid gap-2">
-                                    <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
-                                        <i class="fas fa-sync-alt me-2"></i>Refresh Data
-                                    </button>
-                                    <button class="btn btn-outline-secondary btn-sm" onclick="exportData()">
-                                        <i class="fas fa-download me-2"></i>Export Data
-                                    </button>
-                                    <button class="btn btn-outline-info btn-sm" onclick="window.print()">
-                                        <i class="fas fa-print me-2"></i>Print Page
-                                    </button>
-                                    <button class="btn btn-outline-warning btn-sm" onclick="debugStates()">
-                                        <i class="fas fa-bug me-2"></i>Debug States
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-sm" onclick="testSimpleMap()">
-                                        <i class="fas fa-flask me-2"></i>Test Colors
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1821,7 +1796,83 @@
     }
     
     function exportData() {
-        alert('Export functionality coming soon!');
+        // Show export modal
+        const modal = new bootstrap.Modal(document.getElementById('exportModal'));
+        modal.show();
+    }
+    
+    function downloadExport(exportType, format) {
+        const loadingBtn = document.getElementById('exportLoadingBtn');
+        const exportButtons = document.querySelectorAll('.export-btn');
+        
+        // Show loading state
+        loadingBtn.style.display = 'block';
+        exportButtons.forEach(btn => btn.disabled = true);
+        
+        let url;
+        if (format === 'csv') {
+            url = `/api/export/csv/${exportType}`;
+        } else {
+            url = `/api/export/${exportType}`;
+        }
+        
+        // Create a temporary link to trigger download
+        const link = document.createElement('a');
+        link.href = url;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Hide loading state after a delay
+        setTimeout(() => {
+            loadingBtn.style.display = 'none';
+            exportButtons.forEach(btn => btn.disabled = false);
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+            modal.hide();
+            
+            // Show success message
+            showToast('Export started! Your download should begin shortly.', 'success');
+        }, 1000);
+    }
+    
+    function showToast(message, type = 'info') {
+        // Create toast element
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'primary'} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        
+        // Add to toast container
+        let toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toastContainer';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        
+        // Show toast
+        const toastElement = toastContainer.lastElementChild;
+        const toast = new bootstrap.Toast(toastElement, { delay: 4000 });
+        toast.show();
+        
+        // Remove toast element after it's hidden
+        toastElement.addEventListener('hidden.bs.toast', () => {
+            toastElement.remove();
+        });
     }
     
     function debugStates() {
@@ -1833,24 +1884,6 @@
             .fail(function(xhr) {
                 console.error('Debug failed:', xhr.responseText);
                 alert('Debug failed. Check console for details.');
-            });
-    }
-    
-    function testSimpleMap() {
-        $.get('/api/test/simple-map')
-            .done(function(data) {
-                try {
-                    const plotData = JSON.parse(data);
-                    Plotly.newPlot('state-map', plotData.data, plotData.layout, {responsive: true});
-                    alert('Test map loaded! This should show different colors for each state.');
-                } catch (e) {
-                    console.error('Error parsing test map:', e);
-                    alert('Failed to render test map');
-                }
-            })
-            .fail(function(xhr) {
-                console.error('Test map failed:', xhr.responseText);
-                alert('Test map failed. Check console for details.');
             });
     }
     
@@ -1932,4 +1965,145 @@
         return new Intl.NumberFormat('en-US').format(num);
     }
 </script>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportModalLabel">
+                    <i class="fas fa-download me-2"></i>Export Dashboard Data
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">Choose the data type and format you want to export:</p>
+                
+                <!-- Export Options -->
+                <div class="row g-3">
+                    <!-- Overview Summary -->
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-chart-line text-primary me-2"></i>Overview Summary
+                                </h6>
+                                <p class="card-text small text-muted">KPIs, top states, and summary statistics</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary btn-sm export-btn" onclick="downloadExport('overview', 'json')">
+                                        <i class="fas fa-file-code me-1"></i>JSON
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- District Metrics -->
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-map-marker-alt text-success me-2"></i>District Metrics
+                                </h6>
+                                <p class="card-text small text-muted">Detailed district-level analytics</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-success btn-sm export-btn" onclick="downloadExport('district_metrics', 'csv')">
+                                        <i class="fas fa-file-csv me-1"></i>CSV
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm export-btn" onclick="downloadExport('district_metrics', 'json')">
+                                        <i class="fas fa-file-code me-1"></i>JSON
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- State Metrics -->
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-flag text-info me-2"></i>State Metrics
+                                </h6>
+                                <p class="card-text small text-muted">State-level aggregated data</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-info btn-sm export-btn" onclick="downloadExport('state_metrics', 'csv')">
+                                        <i class="fas fa-file-csv me-1"></i>CSV
+                                    </button>
+                                    <button class="btn btn-outline-info btn-sm export-btn" onclick="downloadExport('state_metrics', 'json')">
+                                        <i class="fas fa-file-code me-1"></i>JSON
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Anomaly Data -->
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>Anomaly Data
+                                </h6>
+                                <p class="card-text small text-muted">Anomaly detection results</p>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-warning btn-sm export-btn" onclick="downloadExport('anomalies', 'csv')">
+                                        <i class="fas fa-file-csv me-1"></i>CSV
+                                    </button>
+                                    <button class="btn btn-outline-warning btn-sm export-btn" onclick="downloadExport('anomalies', 'json')">
+                                        <i class="fas fa-file-code me-1"></i>JSON
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Full Dataset -->
+                    <div class="col-12">
+                        <div class="card border-danger">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-database text-danger me-2"></i>Full Dataset
+                                </h6>
+                                <p class="card-text small text-muted">
+                                    Complete processed dataset (limited to 10,000 records for performance)
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <button class="btn btn-outline-danger btn-sm w-100 export-btn" onclick="downloadExport('full_dataset', 'csv')">
+                                            <i class="fas fa-file-csv me-1"></i>CSV (10K records)
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-outline-danger btn-sm w-100 export-btn" onclick="downloadExport('full_dataset', 'json')">
+                                            <i class="fas fa-file-code me-1"></i>JSON (10K records)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loading State -->
+                <div id="exportLoadingBtn" class="text-center mt-4" style="display: none;">
+                    <div class="spinner-border text-primary me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span>Preparing your export...</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <div class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Files will be downloaded with timestamp in filename
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
