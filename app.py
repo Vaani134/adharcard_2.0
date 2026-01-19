@@ -21,8 +21,15 @@ from pattern_discovery import PatternDiscovery
 from anomaly_detection import AnomalyDetector
 from clustering import DataClustering
 
-# Import geo_utils from local copy
-from geo_utils import GeoJSONUtils
+# Import geo_utils from local copy (with fallback)
+try:
+    from geo_utils import GeoJSONUtils
+    GEO_UTILS_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  Warning: Geospatial utilities not available: {e}")
+    print("   Maps will use fallback bar charts instead of choropleth maps")
+    GEO_UTILS_AVAILABLE = False
+    GeoJSONUtils = None
 
 app = Flask(__name__)
 app.secret_key = 'aadhaar_analytics_dashboard_2025'
@@ -527,11 +534,18 @@ def get_precomputed_metrics(df_with_metrics):
             print(f"Warning: Clustering failed: {e}")
         
         try:
-            geo_utils = GeoJSONUtils()
-            state_geo = geo_utils.merge_geo_with_metrics(state_metrics, level='state')
-            district_geo = geo_utils.merge_geo_with_metrics(district_metrics, level='district')
+            if GEO_UTILS_AVAILABLE:
+                geo_utils = GeoJSONUtils()
+                state_geo = geo_utils.merge_geo_with_metrics(state_metrics, level='state')
+                district_geo = geo_utils.merge_geo_with_metrics(district_metrics, level='district')
+            else:
+                print("   📊 Using fallback: Bar charts instead of choropleth maps")
+                state_geo = None
+                district_geo = None
         except Exception as e:
             print(f"Warning: Geo processing failed: {e}")
+            state_geo = None
+            district_geo = None
         
         return {
             'district_metrics': district_metrics,
