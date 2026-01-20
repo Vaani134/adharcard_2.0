@@ -120,27 +120,27 @@ Standardization   & Cleaning    Analysis     Detection    Maps/Charts
 
 ```
 aadhaar-analytics-dashboard/
-├── 🚀 app.py                          # Main Flask application (1,600+ lines)
-├── 📋 requirements.txt                # Python dependencies
-├── 📖 README.md                       # This comprehensive guide
-├── 📖 SETUP_GUIDE.md                  # Detailed setup instructions
-├── 🗂️ templates/
-│   ├── 🎨 base.html                   # Base template with navigation & styling
-│   └── 📊 index.html                  # Main dashboard (1,800+ lines)
-├── 🎨 static/css/                     # Custom stylesheets
-├── 🔧 Core Processing Modules:
-│   ├── 📊 data_processor.py           # Data loading & standardization
-│   ├── 📈 metrics_calculator.py       # KPI & metrics computation
-│   ├── 🚨 anomaly_detection.py        # Statistical anomaly detection
-│   ├── 🗺️ geo_utils.py               # Geographic data utilities
-│   ├── 🔍 pattern_discovery.py        # Pattern analysis algorithms
-│   └── 🎯 clustering.py               # Data clustering algorithms
-├── 📊 Data Directories (Local):
-│   ├── 🔐 api_data_aadhar_biometric/  # Biometric update data
-│   ├── 👤 api_data_aadhar_demographic/ # Demographic update data
-│   ├── 📝 api_data_aadhar_enrolment/   # Enrolment data
-│   └── 🗺️ india-maps-data/            # Geographic boundaries
-└── 🗑️ __pycache__/                   # Python cache (auto-generated)
+├── app.py                          # Main Flask application (1,600+ lines)
+├── requirements.txt                # Python dependencies
+├── README.md                       # This comprehensive guide
+├── SETUP_GUIDE.md                  # Detailed setup instructions
+├── templates/
+│   ├── base.html                   # Base template with navigation & styling
+│   └── index.html                  # Main dashboard (1,800+ lines)
+├── static/css/                     # Custom stylesheets
+├── Core Processing Modules:
+│   ├── data_processor.py           # Data loading & standardization
+│   ├── metrics_calculator.py       # KPI & metrics computation
+│   ├── anomaly_detection.py        # Statistical anomaly detection
+│   ├── geo_utils.py               # Geographic data utilities
+│   ├── pattern_discovery.py        # Pattern analysis algorithms
+│   └── clustering.py               # Data clustering algorithms
+├── Data Directories (Local):
+│   ├── api_data_aadhar_biometric/  # Biometric update data
+│   ├── api_data_aadhar_demographic/ # Demographic update data
+│   ├── api_data_aadhar_enrolment/   # Enrolment data
+│   └── india-maps-data/            # Geographic boundaries
+└── __pycache__/                   # Python cache (auto-generated)
 ```
 
 ---
@@ -231,10 +231,10 @@ GET /api/test-map            # Map rendering testing
 ### **Flask Application (app.py)**
 ```python
 # Main Components:
-├── 🔧 Data Initialization (lines 1-50)
-├── 🗺️ Map Creation Functions (lines 51-450)
-├── 📊 API Endpoints (lines 451-1400)
-├── 🚀 Application Startup (lines 1401-1619)
+├── Data Initialization (lines 1-50)
+├── Map Creation Functions (lines 51-450)
+├── API Endpoints (lines 451-1400)
+├── Application Startup (lines 1401-1619)
 
 # Key Functions:
 - initialize_data()           # Data loading and processing
@@ -277,25 +277,25 @@ class AnomalyDetector:
 #### **Base Template (base.html)**
 ```html
 <!-- Core Structure: -->
-├── 🎨 CSS Framework (Bootstrap 5.3)
-├── 🎨 Custom Styling (600+ lines of CSS)
-├── 🧭 Navigation Bar
-├── 📱 Responsive Design
-├── 🔧 JavaScript Utilities
-└── 📊 Plotly.js Integration
+├── CSS Framework (Bootstrap 5.3)
+├── Custom Styling (600+ lines of CSS)
+├── Navigation Bar
+├── Responsive Design
+├── JavaScript Utilities
+└── Plotly.js Integration
 ```
 
 #### **Main Dashboard (index.html)**
 ```html
 <!-- Dashboard Components: -->
-├── 📊 Tab Navigation (8 main sections)
-├── 📈 KPI Cards & Metrics
-├── 🗺️ Interactive Maps (3 types)
-├── 📊 Charts & Visualizations
-├── 🔍 Comparison Tools
-├── 🚨 Anomaly Detection
-├── 📱 Mobile Responsive Layout
-└── ⚡ AJAX Data Loading (1000+ lines JS)
+├── Tab Navigation (8 main sections)
+├── KPI Cards & Metrics
+├── Interactive Maps (3 types)
+├── Charts & Visualizations
+├── Comparison Tools
+├── Anomaly Detection
+├── Mobile Responsive Layout
+└── AJAX Data Loading (1000+ lines JS)
 ```
 
 ---
@@ -489,15 +489,6 @@ WORKERS=4
 - **Expertise**: Frontend Development, Responsive Design, User Experience
 - **Contributions**: UI/UX design, responsive layout, interactive components
 - **Contact**: vaaniparmar58@gmail.com
-
-### **Institution**
-**🏛️ College of Agricultural Information Technology**  
-Anand Agricultural University (AAU)  
-Anand, Gujarat, India
-
-**🎓 Program**: Bachelor of Technology in Information Technology  
-**📅 Academic Year**: 2024-2025  
-**🎯 Project Type**: Final Year Capstone Project
 
 ---
 
